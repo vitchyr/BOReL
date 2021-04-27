@@ -4,6 +4,7 @@ import datetime
 import os
 import numpy as np
 import torch
+from tqdm import tqdm
 from utils import helpers as utl, offline_utils as off_utl
 from utils import evaluation as utl_eval
 import utils.config_utils as config_utl
@@ -50,16 +51,8 @@ def eval_vae(dataset, vae, args):
                 hidden_state=hidden_state
             )
 
-            try:
-                rewards[task_idx, step] = dataset[task][2][step, traj_idx_random].item()
-            except IndexError as e:
-                import ipdb; ipdb.set_trace()
+            rewards[task_idx, step] = dataset[task][2][step, traj_idx_random].item()
             reward_preds[task_idx, step] = ptu.get_numpy(
-                vae.reward_decoder(task_sample.unsqueeze(0),
-                                   ptu.FloatTensor(dataset[task][3][step, traj_idx_random]).unsqueeze(0).unsqueeze(0),
-                                   ptu.FloatTensor(dataset[task][0][step, traj_idx_random]).unsqueeze(0).unsqueeze(0),
-                                   ptu.FloatTensor(dataset[task][1][step, traj_idx_random]).unsqueeze(0).unsqueeze(0))[0, 0])
-            tmp = ptu.get_numpy(
                 vae.reward_decoder(task_sample.unsqueeze(0),
                                    ptu.FloatTensor(dataset[task][3][step, traj_idx_random]).unsqueeze(0).unsqueeze(0),
                                    ptu.FloatTensor(dataset[task][0][step, traj_idx_random]).unsqueeze(0).unsqueeze(0),
@@ -198,7 +191,7 @@ def train(vae, dataset, args):
         traj_permutation = np.random.permutation(np.min([d[0].shape[1] for d in dataset]))
         loss_tr, rew_loss_tr, state_loss_tr, kl_loss_tr = 0, 0, 0, 0  # initialize loss for epoch
         n_updates = 0   # count number of updates
-        for i in range(n_batches):
+        for i in tqdm(range(n_batches), desc="Epoch {}".format(iter_)):
 
             if i == n_batches - 1:
                 traj_indices = traj_permutation[i * args.vae_batch_num_rollouts_per_task:]
@@ -243,14 +236,6 @@ def train(vae, dataset, args):
                 rew_loss_tr += rew_recon_loss.item()
                 state_loss_tr += state_recon_loss.item()
                 kl_loss_tr += kl_term.item()
-
-            if (i + 1) % args.log_interval == 0:
-                len_bar = int((BAR_LENGTH * (i+1))/n_batches)
-                bar = ('=' * len_bar + '>').ljust(BAR_LENGTH, '.')
-                idx = str(i+1).rjust(len(str(n_batches)), ' ')
-
-                tmpl = '{}/{}: [{}]'.format(idx, n_batches, bar)
-                print('Epoch {} '.format(iter_+1) + tmpl)
 
         print('Elapsed time: {:.2f}, loss: {:.4f} -- rew_loss: {:.4f} -- state_loss: {:.4f} -- kl: {:.4f}'
               .format(time.time() - start_time, loss_tr / n_updates, rew_loss_tr / n_updates,
@@ -326,6 +311,7 @@ def main():
 
     if args.env_name == 'AntDir-v0':
         args.data_dir = '/home/vitchyr/mnt2/log2/21-02-22-ant-awac--exp7-ant-dir-4-eval-4-train-sac-to-get-buffer-longer/21-02-22-ant-awac--exp7-ant-dir-4-eval-4-train-sac-to-get-buffer-longer_2021_02_23_06_09_23_id000--s270987/borel_buffer/'
+        args.trajectory_len = 200
         dataset, goals = off_utl.load_rlkit_to_macaw_dataset(
             data_dir=args.data_dir,
             add_done_info=env.add_done_info,
