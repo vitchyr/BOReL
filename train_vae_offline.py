@@ -17,6 +17,7 @@ from vae_config import args_gridworld, args_point_robot_sparse, args_cheetah_vel
 
 
 BAR_LENGTH = 32     # for nicely printing training progress
+NUM_EVAL_TASKS = 2
 
 
 def vis_train_tasks(env, goals):
@@ -31,7 +32,7 @@ def eval_vae(dataset, vae, args):
     num_tasks = len(dataset)
     reward_preds = np.zeros((num_tasks, args.trajectory_len))
     rewards = np.zeros((num_tasks, args.trajectory_len))
-    random_tasks = np.random.choice(len(dataset), 10)  # which trajectory to evaluate
+    random_tasks = np.random.choice(len(dataset), NUM_EVAL_TASKS)  # which trajectory to evaluate
 
     for task_idx, task in enumerate(random_tasks):
         traj_idx_random = np.random.choice(dataset[0][0].shape[1])  # which trajectory to evaluate
@@ -49,8 +50,16 @@ def eval_vae(dataset, vae, args):
                 hidden_state=hidden_state
             )
 
-            rewards[task_idx, step] = dataset[task][2][step, traj_idx_random].item()
+            try:
+                rewards[task_idx, step] = dataset[task][2][step, traj_idx_random].item()
+            except IndexError as e:
+                import ipdb; ipdb.set_trace()
             reward_preds[task_idx, step] = ptu.get_numpy(
+                vae.reward_decoder(task_sample.unsqueeze(0),
+                                   ptu.FloatTensor(dataset[task][3][step, traj_idx_random]).unsqueeze(0).unsqueeze(0),
+                                   ptu.FloatTensor(dataset[task][0][step, traj_idx_random]).unsqueeze(0).unsqueeze(0),
+                                   ptu.FloatTensor(dataset[task][1][step, traj_idx_random]).unsqueeze(0).unsqueeze(0))[0, 0])
+            tmp = ptu.get_numpy(
                 vae.reward_decoder(task_sample.unsqueeze(0),
                                    ptu.FloatTensor(dataset[task][3][step, traj_idx_random]).unsqueeze(0).unsqueeze(0),
                                    ptu.FloatTensor(dataset[task][0][step, traj_idx_random]).unsqueeze(0).unsqueeze(0),
@@ -181,8 +190,12 @@ def train(vae, dataset, args):
     start_time = time.time()
     total_updates = 0
     for iter_ in range(args.num_iters):
-        n_batches = int(np.ceil(dataset[0][0].shape[1] / args.vae_batch_num_rollouts_per_task))
-        traj_permutation = np.random.permutation(dataset[0][0].shape[1])
+        n_batches = np.min([
+            int(np.ceil(d[0].shape[1] / args.vae_batch_num_rollouts_per_task))
+            for d in dataset
+        ])
+        # traj_permutation = np.random.permutation(dataset[0][0].shape[1])
+        traj_permutation = np.random.permutation(np.min([d[0].shape[1] for d in dataset]))
         loss_tr, rew_loss_tr, state_loss_tr, kl_loss_tr = 0, 0, 0, 0  # initialize loss for epoch
         n_updates = 0   # count number of updates
         for i in range(n_batches):
@@ -252,7 +265,7 @@ def train(vae, dataset, args):
             writer.add_scalar('loss/kl', kl_loss_tr / n_updates, total_updates)
             if args.env_name != 'GridNavi-v2':  # TODO: eval for gridworld domain
                 rewards_eval, reward_preds_eval = eval_vae(dataset, vae, args)
-                for task in range(10):
+                for task in range(NUM_EVAL_TASKS):
                     writer.add_figure('reward_prediction/task_{}'.format(task),
                                       utl_eval.plot_rew_pred_vs_rew(rewards_eval[task, :],
                                                                     reward_preds_eval[task, :]),
@@ -295,18 +308,35 @@ def main():
         args = args_cheetah_vel.get_args(rest_args)
     elif env == 'ant_semicircle_sparse':
         args = args_ant_semicircle_sparse.get_args(rest_args)
+    elif env == 'ant_dir':
+        # TODO: replace with ant_dir env
+        args = args_ant_semicircle_sparse.get_args(rest_args)
+        parser.add_argument('--env-name', default='AntSemiCircleSparse-v0')
+        args.env_name = 'AntDir-v0'
+        args.trajectory_len = 200
 
     set_gpu_mode(torch.cuda.is_available() and args.use_gpu)
 
     args, env = off_utl.expand_args(args)
 
-    dataset, goals = off_utl.load_dataset(data_dir=args.data_dir, args=args, arr_type='numpy')
-    # dataset, goals = off_utl.load_dataset(args)
-    if args.hindsight_relabelling:
-        print('Perform reward relabelling...')
-        dataset, goals = off_utl.mix_task_rollouts(dataset, env, goals, args)
-    # vis test tasks
-    # vis_train_tasks(env.unwrapped, goals)     # not with GridNavi
+    # dataset, goals = off_utl.load_dataset(data_dir=args.data_dir, args=args, arr_type='numpy')
+    # args.data_dir = '/home/vitchyr/mnt2/log2/azure/21-04-26_macaw_data_collection_ant_dir_32_take3/buffers/'
+    # args.data_dir = '/home/vitchyr/mnt2/log2/demos/ant_four_dir/buffer_550k_each/macaw/'
+
+
+    if args.env_name == 'AntDir-v0':
+        args.data_dir = '/home/vitchyr/mnt2/log2/21-02-22-ant-awac--exp7-ant-dir-4-eval-4-train-sac-to-get-buffer-longer/21-02-22-ant-awac--exp7-ant-dir-4-eval-4-train-sac-to-get-buffer-longer_2021_02_23_06_09_23_id000--s270987/borel_buffer/'
+        dataset, goals = off_utl.load_rlkit_to_macaw_dataset(
+            data_dir=args.data_dir,
+            add_done_info=env.add_done_info,
+        )
+        dataset = [[x.astype(np.float32) for x in d] for d in dataset]
+    else:
+        dataset, goals = off_utl.load_dataset(args.data_dir, args)
+        if args.hindsight_relabelling and False:
+            print('Perform reward relabelling...')
+            dataset, goals = off_utl.mix_task_rollouts(dataset, env, goals, args)
+        dataset = [[ptu.get_numpy(x) for x in d] for d in dataset]
 
     if args.save_model:
         dir_prefix = args.save_dir_prefix if hasattr(args, 'save_dir_prefix') \

@@ -147,6 +147,50 @@ def load_trained_vae(vae, path):
     vae.load_model(**paths)
 
 
+def load_rlkit_to_macaw_dataset(data_dir, add_done_info=False):
+    from pathlib import Path
+    import joblib
+    import glob
+    import re
+    base_dir = Path(data_dir)
+    tasks = joblib.load(base_dir / 'tasks.joblib')['tasks']
+    goals = [t['goal'] for t in tasks]
+    task_idx_to_path = {}
+    for buffer_path in glob.glob(str(base_dir / 'converted*')):
+        pattern = re.compile('converted_task_(\d+).npy')
+        match = pattern.search(buffer_path)
+        task_idx = int(match.group(1))
+        task_idx_to_path[task_idx] = buffer_path
+
+    dataset = []
+    final_goals = []
+    for idx in range(len(tasks)):
+        if idx in task_idx_to_path:
+            dataset.append(load_single_dataset(task_idx_to_path[idx], add_done_info=add_done_info))
+            final_goals.append(goals[idx])
+        else:
+            break
+    return dataset, np.array(final_goals).reshape(len(final_goals), -1)
+
+
+def load_single_dataset(dataset_path, add_done_info):
+    data = np.load(dataset_path, allow_pickle=True).item()
+    obs = data['obs']
+    actions = data['actions']
+    rewards = data['rewards']
+    terminals = data['terminals']
+    next_obs = data['next_obs']
+    if add_done_info:
+        obs = np.concatenate([obs, terminals], axis=-1)
+        time_terminated_terminals = np.concatenate([
+            terminals[1:, ...],
+            np.ones_like(terminals[-1:, ...])
+        ], axis=0)
+        next_obs = np.concatenate([next_obs, time_terminated_terminals], axis=-1)
+    return [obs, actions, rewards, next_obs, terminals]
+
+
+
 def load_dataset(data_dir, args, num_tasks=None, allow_dense_data_loading=True, arr_type='tensor'):
     dataset = []
     env_dir = args.env_name.replace('Sparse', '') \
