@@ -128,7 +128,7 @@ class OfflineMetaLearner:
                                                   allow_dense_data_loading=False,
                                                   arr_type='numpy')
         augmented_obs_dim = dataset[0][0].shape[1]
-        self.storage = MultiTaskPolicyStorage(max_replay_buffer_size=dataset[0][0].shape[0],
+        self.storage = MultiTaskPolicyStorage(max_replay_buffer_size=max([d[0].shape[0] for d in dataset]),
                                               obs_dim=dataset[0][0].shape[1],
                                               action_space=self.args.act_space,
                                               tasks=range(len(goals)),

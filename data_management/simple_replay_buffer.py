@@ -62,7 +62,12 @@ class SimpleReplayBuffer(ReplayBuffer):
         ''' inputs are of size (n_samples, dim) '''
         # Assumes no overhead in buffer (there is place for n_samples on top of buffer)
         n_samples = observations.shape[0]
-        self._observations[self._top:self._top + n_samples] = observations
+        error = None
+        try:
+            self._observations[self._top:self._top + n_samples] = observations
+        except ValueError as error:
+            import ipdb; ipdb.set_trace()
+            pass
         self._actions[self._top:self._top + n_samples] = actions
         self._rewards[self._top:self._top + n_samples] = rewards
         self._terminals[self._top:self._top + n_samples] = terminals

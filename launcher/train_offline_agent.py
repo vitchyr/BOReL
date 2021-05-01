@@ -25,12 +25,12 @@ from doodad.wrappers.easy_launch import save_doodad_config, DoodadConfig
 def _borel(
         log_dir,
         offline_buffer_path,
-        save_data_path,
         pretrained_vae_dir,
         vae_model_name,
         env_type,
         transform_data_bamdp,
         seed,
+        save_data_path='',
 ):
     random.seed(seed)
     np.random.seed(seed)
@@ -57,6 +57,8 @@ def _borel(
                    n_tasks=1)
 
     # Transform data BAMDP (state relabelling)
+    args.vae_dir = pretrained_vae_dir
+    args.data_dir = offline_buffer_path
     if transform_data_bamdp:
         # load VAE for state relabelling
         vae_models_path = os.path.join(pretrained_vae_dir, args.env_name,
@@ -74,6 +76,9 @@ def _borel(
         bamdp_dataset = off_utl.transform_mdps_ds_to_bamdp_ds(dataset, vae, args)
         # save relabelled data
         off_utl.save_dataset(save_data_path, bamdp_dataset, goals)
+        args.relabelled_data_dir = save_data_path
+    else:
+        args.relabelled_data_dir = offline_buffer_path
 
     args.results_log_dir = log_dir
     learner = OfflineMetaLearner(args)

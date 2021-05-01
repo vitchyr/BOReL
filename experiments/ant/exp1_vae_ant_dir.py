@@ -48,6 +48,7 @@ def main(debug, suffix, nseeds, mode):
         ]
     else:
         remote_mount_configs = []
+    print(exp_name)
     sweep_function(
         train_vae,
         params,
@@ -68,6 +69,7 @@ def main(debug, suffix, nseeds, mode):
         use_gpu=True,
         remote_mount_configs=remote_mount_configs,
     )
+    print(exp_name)
 
 
 if __name__ == '__main__':

@@ -27,11 +27,12 @@ def main(debug, suffix, nseeds, mode):
         'seed': list(range(nseeds)),
     }
     default_params = {
-        'offline_buffer_path': '/preloaded_buffer/ant_dir_32/borel_buffer_iter50/',
-        'save_data_path': '/preloaded_buffer/ant_dir_32/borel_buffer_iter50_relabelled/',
+        'offline_buffer_path': '/preloaded_buffer/ant_dir_32/borel_buffer_iter50_relabelled/',
         'pretrained_vae_dir': '/pretrained_vae',
         'vae_model_name': 'relabel_semi_modified_init_state_dist__30_04_23_21_33',
-        'transform_data_bamdp': True,
+        'transform_data_bamdp': False,
+        # 'save_data_path': '/preloaded_buffer/ant_dir_32/borel_buffer_iter50_relabelled/',
+        # 'transform_data_bamdp': True,
         # 'train_task_idxs': [0, 1, 2, 3],
         # 'test_task_idxs': [4, 5, 6, 7],
     }
