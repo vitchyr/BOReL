@@ -149,15 +149,15 @@ def load_trained_vae(vae, path):
 
 def load_rlkit_to_macaw_dataset(data_dir, add_done_info=False):
     from pathlib import Path
-    import joblib
+    import pickle
     import glob
     import re
     base_dir = Path(data_dir)
-    tasks = joblib.load(base_dir / 'tasks.joblib')['tasks']
+    tasks = pickle.load(open(str(base_dir / 'tasks.pkl'), 'rb'))
     goals = [t['goal'] for t in tasks]
     task_idx_to_path = {}
-    for buffer_path in glob.glob(str(base_dir / 'converted*')):
-        pattern = re.compile('converted_task_(\d+).npy')
+    for buffer_path in glob.glob(str(base_dir / 'borel_buffer*')):
+        pattern = re.compile('borel_buffer_task_(\d+).npy')
         match = pattern.search(buffer_path)
         task_idx = int(match.group(1))
         task_idx_to_path[task_idx] = buffer_path
@@ -323,7 +323,7 @@ def transform_mdp_to_bamdp_rollouts(vae, args, obs, actions, rewards, next_obs, 
         # _, mean, logvar, hidden_state = vae.encoder.prior(batch_size=1)
         _, mean, logvar, hidden_state = vae.encoder.prior(batch_size=obs.shape[1])
         augmented_obs[0, :, :] = torch.cat((obs[0], mean[0], logvar[0]), dim=-1)
-    for step in range(args.trajectory_len):
+    for step in range(args.trajectory_len-1):
         # update encoding
         _, mean, logvar, hidden_state = utl.update_encoding(
             encoder=vae.encoder,

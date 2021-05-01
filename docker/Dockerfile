@@ -78,7 +78,7 @@ RUN wget --quiet https://repo.anaconda.com/miniconda/Miniconda3-latest-Linux-x86
     echo ". /opt/conda/etc/profile.d/conda.sh" >> /etc/bash.bashrc
 
 RUN conda update -y --name base conda && conda clean --all -y
- 
+
 
 WORKDIR /root
 COPY ./omrl.yml /root/omrl.yml
@@ -94,11 +94,4 @@ ENV PATH /opt/conda/envs/railrl/bin:$PATH
 RUN curl -o /usr/local/bin/patchelf https://s3-us-west-2.amazonaws.com/openai-sci-artifacts/manual-builds/patchelf_0.9_amd64.elf \
     && chmod +x /usr/local/bin/patchelf
 RUN pip install gym[all]==0.12.5
-
-##########################################################
-### Cleanup
-##########################################################
-
-# Technically this shouldn't be necessary since we put this in the bashrc
-# but for some reason, bashrc isn't being run on AWS.
-ENTRYPOINT source activate railrl
+RUN python -c 'import mujoco_py'

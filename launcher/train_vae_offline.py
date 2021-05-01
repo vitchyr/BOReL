@@ -2,8 +2,10 @@
 import argparse
 import datetime
 import os
+import random
 import numpy as np
 import torch
+from doodad.wrappers.easy_launch import save_doodad_config, DoodadConfig
 from tqdm import tqdm
 from utils import helpers as utl, offline_utils as off_utl
 from utils import evaluation as utl_eval
@@ -36,7 +38,8 @@ def eval_vae(dataset, vae, args):
     random_tasks = np.random.choice(len(dataset), NUM_EVAL_TASKS)  # which trajectory to evaluate
 
     for task_idx, task in enumerate(random_tasks):
-        traj_idx_random = np.random.choice(dataset[0][0].shape[1])  # which trajectory to evaluate
+        traj_idx_random = np.random.choice(dataset[task][0].shape[1])  # which trajectory to evaluate
+        # traj_idx_random = np.random.choice(np.min([d[0].shape[1] for d in dataset]))
         # get prior parameters
         with torch.no_grad():
             task_sample, task_mean, task_logvar, hidden_state = vae.encoder.prior(batch_size=1)
@@ -273,44 +276,46 @@ def train(vae, dataset, args):
                            os.path.join(save_path, "state_decoder{0}.pt".format(iter_ + 1)))
 
 
-def main():
+def _train_vae(log_dir, offline_buffer_path, env_type, seed):
+    random.seed(seed)
+    np.random.seed(seed)
+    torch.manual_seed(seed)
+    torch.cuda.manual_seed(seed)
+
     parser = argparse.ArgumentParser()
     # parser.add_argument('--env-type', default='gridworld')
     # parser.add_argument('--env-type', default='point_robot_sparse')
     # parser.add_argument('--env-type', default='cheetah_vel')
     parser.add_argument('--env-type', default='ant_semicircle_sparse')
-    args, rest_args = parser.parse_known_args()
-    env = args.env_type
+    args, rest_args = parser.parse_known_args(args=[])
 
     # --- GridWorld ---
-    if env == 'gridworld':
+    if env_type == 'gridworld':
         args = args_gridworld.get_args(rest_args)
     # --- PointRobot ---
-    elif env == 'point_robot_sparse':
+    elif env_type == 'point_robot_sparse':
         args = args_point_robot_sparse.get_args(rest_args)
     # --- Mujoco ---
-    elif env == 'cheetah_vel':
+    elif env_type == 'cheetah_vel':
         args = args_cheetah_vel.get_args(rest_args)
-    elif env == 'ant_semicircle_sparse':
+    elif env_type == 'ant_semicircle_sparse':
         args = args_ant_semicircle_sparse.get_args(rest_args)
-    elif env == 'ant_dir':
+    elif env_type == 'ant_dir':
         # TODO: replace with ant_dir env
         args = args_ant_semicircle_sparse.get_args(rest_args)
         parser.add_argument('--env-name', default='AntSemiCircleSparse-v0')
         args.env_name = 'AntDir-v0'
-        args.trajectory_len = 200
 
     set_gpu_mode(torch.cuda.is_available() and args.use_gpu)
 
     args, env = off_utl.expand_args(args)
-
-    # dataset, goals = off_utl.load_dataset(data_dir=args.data_dir, args=args, arr_type='numpy')
-    # args.data_dir = '/home/vitchyr/mnt2/log2/azure/21-04-26_macaw_data_collection_ant_dir_32_take3/buffers/'
-    # args.data_dir = '/home/vitchyr/mnt2/log2/demos/ant_four_dir/buffer_550k_each/macaw/'
+    args.save_dir = os.path.join(log_dir, 'trained_vae')
 
 
     if args.env_name == 'AntDir-v0':
-        args.data_dir = '/home/vitchyr/mnt2/log2/21-02-22-ant-awac--exp7-ant-dir-4-eval-4-train-sac-to-get-buffer-longer/21-02-22-ant-awac--exp7-ant-dir-4-eval-4-train-sac-to-get-buffer-longer_2021_02_23_06_09_23_id000--s270987/borel_buffer/'
+        # args.data_dir = '/home/vitchyr/mnt2/log2/21-02-22-ant-awac--exp7-ant-dir-4-eval-4-train-sac-to-get-buffer-longer/21-02-22-ant-awac--exp7-ant-dir-4-eval-4-train-sac-to-get-buffer-longer_2021_02_23_06_09_23_id000--s270987/borel_buffer/'
+        # args.data_dir = '/home/vitchyr/mnt2/log2/demos/ant_dir_32/borel_buffer_iter50/'
+        args.data_dir = offline_buffer_path
         args.trajectory_len = 200
         dataset, goals = off_utl.load_rlkit_to_macaw_dataset(
             data_dir=args.data_dir,
@@ -336,5 +341,6 @@ def main():
     train(vae, dataset, args)
 
 
-if __name__ == '__main__':
-    main()
+def train_vae(doodad_config: DoodadConfig, params):
+    save_doodad_config(doodad_config)
+    _train_vae(doodad_config.output_directory, **params)

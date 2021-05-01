@@ -1,4 +1,4 @@
-name: omrl
+name: railrl
 channels:
   - anaconda
   - conda-forge
