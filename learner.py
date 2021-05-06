@@ -424,6 +424,7 @@ class Learner:
                                                      sum([param_list[i].grad.mean() for i in range(len(param_list))]),
                                                      self._n_env_steps_total)
 
+        self.tb_logger.finish_iteration(iteration)
         print("Iteration -- {}, Success rate -- {:.3f}, Avg. return -- {:.3f}, Elapsed time {:5d}[s]"
               .format(iteration, np.mean(success_rate_train), np.mean(np.sum(returns_train, axis=-1)),
                       int(time.time() - self._start_time)))

@@ -3,6 +3,9 @@ import datetime
 import os
 from tensorboardX import SummaryWriter
 from torchkit import pytorch_utils as ptu
+import torch
+
+from utils.logging import logger, setup_logger
 
 
 class TBLogger:
@@ -55,6 +58,16 @@ class TBLogger:
 
         self.writer = SummaryWriter(self.full_output_folder)
 
+        old_add_scalar = self.writer.add_scalar
+
+        def new_add_scalar(key, value, step):
+            if isinstance(value, torch.Tensor):
+                value = ptu.get_numpy(value)
+            old_add_scalar(key, value, step)
+            logger.record_tabular(key, value)
+
+        self.writer.add_scalar = new_add_scalar
+
         print('logging under', self.full_output_folder)
 
         with open(os.path.join(self.full_output_folder, 'online_config.json'), 'w') as f:
@@ -64,3 +77,8 @@ class TBLogger:
                 config = args
             config.update(device=ptu.device.type)
             json.dump(config, f, indent=2)
+
+    def finish_iteration(self, iter):
+        logger.record_tabular('iteration', iter)
+        logger.dump_tabular()
+        print("iteration {} done".format(iter))

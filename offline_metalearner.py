@@ -17,6 +17,9 @@ from models.vae import VAE
 from models.policy import TanhGaussianPolicy
 
 
+PLOT_VIS = False
+
+
 class OfflineMetaLearner:
     """
     Off-line Meta-Learner class, a.k.a no interaction with env.
@@ -303,9 +306,10 @@ class OfflineMetaLearner:
                 tasks_to_vis = np.random.choice(self.args.num_eval_tasks, 5)
                 for i, task in enumerate(tasks_to_vis):
                     self.env.reset(task)
-                    self.tb_logger.writer.add_figure('policy_vis/task_{}'.format(i),
-                                                     utl_eval.plot_rollouts(observations[task, :], self.env),
-                                                     self._n_rl_update_steps_total)
+                    if PLOT_VIS:
+                        self.tb_logger.writer.add_figure('policy_vis/task_{}'.format(i),
+                                                         utl_eval.plot_rollouts(observations[task, :], self.env),
+                                                         self._n_rl_update_steps_total)
                     self.tb_logger.writer.add_figure('reward_prediction_train/task_{}'.format(i),
                                                      utl_eval.plot_rew_pred_vs_rew(rewards[task, :],
                                                                                    reward_preds[task, :]),
@@ -415,6 +419,8 @@ class OfflineMetaLearner:
                         self.tb_logger.writer.add_scalar('gradients/policy',
                                                          sum([param_list[i].grad.mean() for i in range(len(param_list))]),
                                                          self._n_rl_update_steps_total)
+
+            self.tb_logger.finish_iteration(iteration)
 
             print("Iteration -- {}, Success rate -- {:.3f}, Avg. return -- {:.3f}, Elapsed time {:5d}[s]"
                   .format(iteration, np.mean(success_rate), np.mean(np.sum(returns, axis=-1)),

@@ -617,6 +617,7 @@ class MetaLearner:
         #       format(iteration,
         #              self._n_rl_update_steps_total,
         #              int(time.time() - self._start_time)))
+        self.tb_logger.finish_iteration(iteration)
         print("Iteration -- {}, Success rate train -- {:.3f}, Success rate eval.-- {:.3f}, "
               "Avg. return train -- {:.3f}, Avg. return eval. -- {:.3f}, Elapsed time {:5d}[s]"
               .format(iteration, np.mean(success_rate_train),

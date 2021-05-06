@@ -19,9 +19,9 @@ class HalfCheetahVelEnv(HalfCheetahEnv):
         model-based control", 2012
         (https://homes.cs.washington.edu/~todorov/papers/TodorovIROS12.pdf)
     """
-    def __init__(self, task={}, n_tasks=2, max_episode_steps=200, **kwargs):
+    def __init__(self, task={}, presampled_tasks=None, n_tasks=2, max_episode_steps=200, **kwargs):
         self._task = task
-        self.tasks = self.sample_tasks(n_tasks)
+        self.tasks = presampled_tasks or self.sample_tasks(n_tasks)
         self._goal_vel = self.tasks[0].get('velocity', 0.0)
         self._goal = self._goal_vel
         self._max_episode_steps = max_episode_steps
@@ -39,8 +39,13 @@ class HalfCheetahVelEnv(HalfCheetahEnv):
         observation = self._get_obs()
         reward = forward_reward - ctrl_cost
         done = False
-        infos = dict(reward_forward=forward_reward,
-            reward_ctrl=-ctrl_cost, task=self._task)
+        infos = dict(
+            reward_forward=forward_reward,
+            reward_ctrl=-ctrl_cost,
+            goal_vel=self._goal_vel,
+            forward_vel=forward_vel,
+            xposbefore=xposbefore,
+        )
         return (observation, reward, done, infos)
 
     def set_goal(self, goal):

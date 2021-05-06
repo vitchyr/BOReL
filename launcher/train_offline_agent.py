@@ -14,6 +14,7 @@ from offline_config import (
     args_cheetah_vel, args_point_robot_sparse, args_gridworld,
     args_ant_dir
 )
+from utils.logging import setup_logger, logger
 
 env_name_to_args = {
     'ant_dir': args_ant_dir,
@@ -31,6 +32,8 @@ def _borel(
         transform_data_bamdp,
         seed,
         save_data_path='',
+        debug=False,
+        max_rollouts_per_task=3,
 ):
     random.seed(seed)
     np.random.seed(seed)
@@ -80,7 +83,15 @@ def _borel(
     else:
         args.relabelled_data_dir = offline_buffer_path
 
+    args.max_rollouts_per_task = 3
     args.results_log_dir = log_dir
+    exp_name = log_dir.split('/')[-2]
+
+    setup_logger(logger, base_log_dir=None, exp_name=exp_name, log_dir=log_dir)
+    if debug:
+        print("DEBUG MODE ON")
+        args.rl_updates_per_iter = 1
+        args.log_interval = 1
     learner = OfflineMetaLearner(args)
 
     learner.train()
