@@ -1,7 +1,5 @@
 """
 General purpose Python functions.
-
-TODO(vitchyr): probably move this to its own module, not under railrl
 """
 import math
 import sys

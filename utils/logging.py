@@ -451,16 +451,16 @@ def setup_logger(
         tensorboard_log_path = osp.join(log_dir, "tensorboard")
         logger.add_tensorboard_output(tensorboard_log_path)
 
-    # logger.log("Variant:")
-    # variant_to_save = variant.copy()
-    # variant_to_save['unique_id'] = unique_id
-    # variant_to_save['exp_name'] = exp_name
-    # variant_to_save['trial_name'] = log_dir.split('/')[-1]
-    # logger.log(
-    #     json.dumps(ppp.dict_to_safe_json(variant_to_save, sort=True), indent=2)
-    # )
-    # variant_log_path = osp.join(log_dir, variant_log_file)
-    # logger.log_variant(variant_log_path, variant_to_save)
+    logger.log("Variant:")
+    variant_to_save = variant.copy()
+    variant_to_save['unique_id'] = unique_id
+    variant_to_save['exp_name'] = exp_name
+    variant_to_save['trial_name'] = log_dir.split('/')[-1]
+    logger.log(
+        json.dumps(ppp.dict_to_safe_json(variant_to_save, sort=True), indent=2)
+    )
+    variant_log_path = osp.join(log_dir, variant_log_file)
+    logger.log_variant(variant_log_path, variant_to_save)
 
     tabular_log_path = osp.join(log_dir, tabular_log_file)
     text_log_path = osp.join(log_dir, text_log_file)

@@ -70,7 +70,7 @@ class OfflineMetaLearner:
         if self.args.policy == 'dqn':
             q_network = FlattenMlp(input_size=self.args.augmented_obs_dim,
                                    output_size=self.args.act_space.n,
-                                   hidden_sizes=self.args.dqn_layers)
+                                   hidden_sizes=self.args.dqn_layers).to(ptu.device)
             self.agent = DQN(
                 q_network,
                 # optimiser_vae=self.optimizer_vae,
@@ -83,13 +83,13 @@ class OfflineMetaLearner:
             #     "Can't train SAC with discrete action space!")
             q1_network = FlattenMlp(input_size=self.args.augmented_obs_dim + self.args.action_dim,
                                     output_size=1,
-                                    hidden_sizes=self.args.dqn_layers)
+                                    hidden_sizes=self.args.dqn_layers).to(ptu.device)
             q2_network = FlattenMlp(input_size=self.args.augmented_obs_dim + self.args.action_dim,
                                     output_size=1,
-                                    hidden_sizes=self.args.dqn_layers)
+                                    hidden_sizes=self.args.dqn_layers).to(ptu.device)
             policy = TanhGaussianPolicy(obs_dim=self.args.augmented_obs_dim,
                                         action_dim=self.args.action_dim,
-                                        hidden_sizes=self.args.policy_layers)
+                                        hidden_sizes=self.args.policy_layers).to(ptu.device)
             self.agent = SAC(
                 policy,
                 q1_network,
@@ -420,6 +420,13 @@ class OfflineMetaLearner:
                                                          sum([param_list[i].grad.mean() for i in range(len(param_list))]),
                                                          self._n_rl_update_steps_total)
 
+
+            for k, v in [
+                ('num_rl_updates', self._n_rl_update_steps_total),
+                ('time_elapsed', time.time() - self._start_time),
+                ('iteration', iteration),
+            ]:
+                self.tb_logger.writer.add_scalar(k, v, self._n_rl_update_steps_total)
             self.tb_logger.finish_iteration(iteration)
 
             print("Iteration -- {}, Success rate -- {:.3f}, Avg. return -- {:.3f}, Elapsed time {:5d}[s]"

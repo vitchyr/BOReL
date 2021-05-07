@@ -79,6 +79,4 @@ class TBLogger:
             json.dump(config, f, indent=2)
 
     def finish_iteration(self, iter):
-        logger.record_tabular('iteration', iter)
         logger.dump_tabular()
-        print("iteration {} done".format(iter))

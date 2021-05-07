@@ -85,9 +85,7 @@ def _borel(
 
     args.max_rollouts_per_task = 3
     args.results_log_dir = log_dir
-    exp_name = log_dir.split('/')[-2]
 
-    setup_logger(logger, base_log_dir=None, exp_name=exp_name, log_dir=log_dir)
     if debug:
         print("DEBUG MODE ON")
         args.rl_updates_per_iter = 1
@@ -99,4 +97,7 @@ def _borel(
 
 def borel(doodad_config: DoodadConfig, params):
     save_doodad_config(doodad_config)
-    _borel(doodad_config.output_directory, **params)
+    log_dir = doodad_config.output_directory
+    exp_name = log_dir.split('/')[-2]
+    setup_logger(logger, variant=params, base_log_dir=None, exp_name=exp_name, log_dir=log_dir)
+    _borel(log_dir, **params)
