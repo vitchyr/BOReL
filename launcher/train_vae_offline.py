@@ -276,7 +276,7 @@ def train(vae, dataset, args):
                            os.path.join(save_path, "state_decoder{0}.pt".format(iter_ + 1)))
 
 
-def _train_vae(log_dir, offline_buffer_path, env_type, seed):
+def _train_vae(log_dir, pretrain_buffer_path, saved_tasks_path, env_type, seed):
     random.seed(seed)
     np.random.seed(seed)
     torch.manual_seed(seed)
@@ -290,21 +290,16 @@ def _train_vae(log_dir, offline_buffer_path, env_type, seed):
     args, rest_args = parser.parse_known_args(args=[])
 
     # --- GridWorld ---
-    if env_type == 'gridworld':
-        args = args_gridworld.get_args(rest_args)
-    # --- PointRobot ---
-    elif env_type == 'point_robot_sparse':
-        args = args_point_robot_sparse.get_args(rest_args)
-    # --- Mujoco ---
-    elif env_type == 'cheetah_vel':
+    if env_type == 'cheetah_vel':
         args = args_cheetah_vel.get_args(rest_args)
-    elif env_type == 'ant_semicircle_sparse':
-        args = args_ant_semicircle_sparse.get_args(rest_args)
+        args.env_name = 'HalfCheetahVel-v0'
     elif env_type == 'ant_dir':
         # TODO: replace with ant_dir env
         args = args_ant_semicircle_sparse.get_args(rest_args)
         parser.add_argument('--env-name', default='AntSemiCircleSparse-v0')
         args.env_name = 'AntDir-v0'
+    else:
+        import ipdb; ipdb.set_trace()
 
     set_gpu_mode(torch.cuda.is_available() and args.use_gpu)
 
@@ -312,13 +307,18 @@ def _train_vae(log_dir, offline_buffer_path, env_type, seed):
     args.save_dir = os.path.join(log_dir, 'trained_vae')
 
 
-    if args.env_name == 'AntDir-v0':
+    if True: #args.env_name == 'AntDir-v0':
         # args.data_dir = '/home/vitchyr/mnt2/log2/21-02-22-ant-awac--exp7-ant-dir-4-eval-4-train-sac-to-get-buffer-longer/21-02-22-ant-awac--exp7-ant-dir-4-eval-4-train-sac-to-get-buffer-longer_2021_02_23_06_09_23_id000--s270987/borel_buffer/'
         # args.data_dir = '/home/vitchyr/mnt2/log2/demos/ant_dir_32/borel_buffer_iter50/'
-        args.data_dir = offline_buffer_path
+        # args.data_dir = offline_buffer_path
         args.trajectory_len = 200
-        dataset, goals = off_utl.load_rlkit_to_macaw_dataset(
-            data_dir=args.data_dir,
+        # dataset, goals = off_utl.load_rlkit_to_macaw_dataset(
+        #     data_dir=args.data_dir,
+        #     add_done_info=env.add_done_info,
+        # )
+        dataset, goals = off_utl.load_pearl_buffer(
+            pretrain_buffer_path,
+            saved_tasks_path,
             add_done_info=env.add_done_info,
         )
         dataset = [[x.astype(np.float32) for x in d] for d in dataset]

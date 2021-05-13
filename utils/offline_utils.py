@@ -1,7 +1,11 @@
 import os
 import numpy as np
 import gym
+import joblib
 import torch
+
+from rlkit.data_management.offline_dataset.util import \
+    rlkit_buffer_to_borel_format
 from utils import helpers as utl
 import matplotlib.pyplot as plt
 from torchkit import pytorch_utils as ptu
@@ -173,8 +177,38 @@ def load_rlkit_to_macaw_dataset(data_dir, add_done_info=False):
     return dataset, np.array(final_goals).reshape(len(final_goals), -1)
 
 
-def load_single_dataset(dataset_path, add_done_info):
-    data = np.load(dataset_path, allow_pickle=True).item()
+def load_pearl_buffer(
+        pretrain_buffer_path,
+        saved_tasks_path,
+        discount_factor=0.99,
+        path_length=200,
+        add_done_info=False,
+):
+    snapshot = joblib.load(pretrain_buffer_path)
+    task_idx_to_buffer = {}
+    key = 'replay_buffer'
+    saved_replay_buffer = snapshot[key]
+    for task_idx in saved_replay_buffer.task_buffers:
+        rlkit_buffer = saved_replay_buffer.task_buffers[task_idx]
+        buffer = rlkit_buffer_to_borel_format(
+            rlkit_buffer, discount_factor, path_length=path_length,
+        )
+        task_idx_to_buffer[task_idx] = buffer
+
+    task_data = joblib.load(saved_tasks_path)
+    tasks = task_data['tasks']
+    goal_key = list(tasks[0].keys())[0]
+    goals = [t[goal_key] for t in tasks]
+
+    dataset = []
+    final_goals = []
+    for idx, buffer in task_idx_to_buffer.items():
+        dataset.append(_clean_dataset(buffer, add_done_info=add_done_info))
+        final_goals.append(goals[idx])
+    return dataset, np.array(final_goals).reshape(len(final_goals), -1)
+
+
+def _clean_dataset(data, add_done_info):
     obs = data['obs']
     actions = data['actions']
     rewards = data['rewards']
@@ -189,6 +223,10 @@ def load_single_dataset(dataset_path, add_done_info):
         next_obs = np.concatenate([next_obs, time_terminated_terminals], axis=-1)
     return [obs, actions, rewards, next_obs, terminals]
 
+
+def load_single_dataset(dataset_path, add_done_info):
+    data = np.load(dataset_path, allow_pickle=True).item()
+    return _clean_dataset(data, add_done_info)
 
 
 def load_dataset(data_dir, args, num_tasks=None, allow_dense_data_loading=True, arr_type='tensor'):
@@ -438,3 +476,4 @@ def relabel_rollout(env, goal, observations, actions):
         return np.vstack(rewards)
     else:
         return ptu.FloatTensor(np.vstack(rewards))
+
