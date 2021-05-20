@@ -315,7 +315,6 @@ def _train_vae(
     else:
         # TODO: add another env
         import ipdb; ipdb.set_trace()
-    import ipdb; ipdb.set_trace()
 
     set_gpu_mode(torch.cuda.is_available() and args.use_gpu)
 
