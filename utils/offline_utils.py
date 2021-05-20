@@ -151,7 +151,7 @@ def load_trained_vae(vae, path):
     vae.load_model(**paths)
 
 
-def load_rlkit_to_macaw_dataset(data_dir, add_done_info=False):
+def load_macaw_dataset(data_dir, add_done_info=False, meta_episode_length=200):
     from pathlib import Path
     import pickle
     import glob
@@ -160,8 +160,8 @@ def load_rlkit_to_macaw_dataset(data_dir, add_done_info=False):
     tasks = pickle.load(open(str(base_dir / 'tasks.pkl'), 'rb'))
     goals = [t['goal'] for t in tasks]
     task_idx_to_path = {}
-    for buffer_path in glob.glob(str(base_dir / 'borel_buffer*')):
-        pattern = re.compile('borel_buffer_task_(\d+).npy')
+    for buffer_path in glob.glob(str(base_dir / 'macaw_buffer*')):
+        pattern = re.compile('macaw_buffer_task_(\d+).npy')
         match = pattern.search(buffer_path)
         task_idx = int(match.group(1))
         task_idx_to_path[task_idx] = buffer_path
@@ -170,7 +170,13 @@ def load_rlkit_to_macaw_dataset(data_dir, add_done_info=False):
     final_goals = []
     for idx in range(len(tasks)):
         if idx in task_idx_to_path:
-            dataset.append(load_single_dataset(task_idx_to_path[idx], add_done_info=add_done_info))
+            dataset.append(
+                load_single_macaw_dataset(
+                    task_idx_to_path[idx],
+                    add_done_info=add_done_info,
+                    meta_episode_length=meta_episode_length,
+                )
+            )
             final_goals.append(goals[idx])
         else:
             break
@@ -226,6 +232,37 @@ def _clean_dataset(data, add_done_info):
 
 def load_single_dataset(dataset_path, add_done_info):
     data = np.load(dataset_path, allow_pickle=True).item()
+    data = _clean_dataset(data, add_done_info)
+    return data
+
+
+def macaw_to_borel(data, meta_episode_length):
+    data = {k: v for k, v in data.items()}  # shallow copy
+
+    obs = data['obs']
+    num_episodes = int(obs.shape[0] / meta_episode_length)
+    if num_episodes * meta_episode_length != obs.shape[0]:
+        print("the number of steps in your replay buffer isn't divisible by the number of meta-episodes. is that okay?")
+        # import ipdb; ipdb.set_trace()
+        num_steps_to_keep = num_episodes * meta_episode_length
+        data['obs'] = data['obs'][:num_steps_to_keep]
+        data['actions'] = data['actions'][:num_steps_to_keep]
+        data['rewards'] = data['rewards'][:num_steps_to_keep]
+        data['terminals'] = data['terminals'][:num_steps_to_keep]
+        data['next_obs'] = data['next_obs'][:num_steps_to_keep]
+
+    data['obs'] = data['obs'].reshape(meta_episode_length, num_episodes, -1)
+    data['actions'] = data['actions'].reshape(meta_episode_length, num_episodes, -1)
+    data['rewards'] = data['rewards'].reshape(meta_episode_length, num_episodes, -1)
+    data['terminals'] = data['terminals'].reshape(meta_episode_length, num_episodes, -1)
+    data['next_obs'] = data['next_obs'].reshape(meta_episode_length, num_episodes, -1)
+
+    return data
+
+
+def load_single_macaw_dataset(dataset_path, add_done_info, meta_episode_length):
+    data = np.load(dataset_path, allow_pickle=True).item()
+    data = macaw_to_borel(data, meta_episode_length)
     return _clean_dataset(data, add_done_info)
 
 

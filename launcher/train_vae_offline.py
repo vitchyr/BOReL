@@ -276,7 +276,15 @@ def train(vae, dataset, args):
                            os.path.join(save_path, "state_decoder{0}.pt".format(iter_ + 1)))
 
 
-def _train_vae(log_dir, pretrain_buffer_path, saved_tasks_path, env_type, seed):
+def _train_vae(
+        log_dir,
+        offline_buffer_path,
+        env_type,
+        seed,
+        path_length,
+        num_rollouts_per_meta_episode,
+        **kwargs
+):
     random.seed(seed)
     np.random.seed(seed)
     torch.manual_seed(seed)
@@ -287,47 +295,40 @@ def _train_vae(log_dir, pretrain_buffer_path, saved_tasks_path, env_type, seed):
     # parser.add_argument('--env-type', default='point_robot_sparse')
     # parser.add_argument('--env-type', default='cheetah_vel')
     parser.add_argument('--env-type', default='ant_semicircle_sparse')
-    args, rest_args = parser.parse_known_args(args=[])
+    extra_args = []
+    for k, v in kwargs.items():
+        extra_args.append('--{}'.format(k))
+        extra_args.append(str(v))
+    # extra_args = [
+    #     '--{} {}'.format(k, v) for k, v in kwargs.items()
+    # ]
+    args, rest_args = parser.parse_known_args(args=extra_args)
 
     # --- GridWorld ---
     if env_type == 'cheetah_vel':
         args = args_cheetah_vel.get_args(rest_args)
         args.env_name = 'HalfCheetahVel-v0'
     elif env_type == 'ant_dir':
-        # TODO: replace with ant_dir env
         args = args_ant_semicircle_sparse.get_args(rest_args)
         parser.add_argument('--env-name', default='AntSemiCircleSparse-v0')
         args.env_name = 'AntDir-v0'
     else:
+        # TODO: add another env
         import ipdb; ipdb.set_trace()
+    import ipdb; ipdb.set_trace()
 
     set_gpu_mode(torch.cuda.is_available() and args.use_gpu)
 
     args, env = off_utl.expand_args(args)
     args.save_dir = os.path.join(log_dir, 'trained_vae')
 
-
-    if True: #args.env_name == 'AntDir-v0':
-        # args.data_dir = '/home/vitchyr/mnt2/log2/21-02-22-ant-awac--exp7-ant-dir-4-eval-4-train-sac-to-get-buffer-longer/21-02-22-ant-awac--exp7-ant-dir-4-eval-4-train-sac-to-get-buffer-longer_2021_02_23_06_09_23_id000--s270987/borel_buffer/'
-        # args.data_dir = '/home/vitchyr/mnt2/log2/demos/ant_dir_32/borel_buffer_iter50/'
-        # args.data_dir = offline_buffer_path
-        args.trajectory_len = 200
-        # dataset, goals = off_utl.load_rlkit_to_macaw_dataset(
-        #     data_dir=args.data_dir,
-        #     add_done_info=env.add_done_info,
-        # )
-        dataset, goals = off_utl.load_pearl_buffer(
-            pretrain_buffer_path,
-            saved_tasks_path,
-            add_done_info=env.add_done_info,
-        )
-        dataset = [[x.astype(np.float32) for x in d] for d in dataset]
-    else:
-        dataset, goals = off_utl.load_dataset(args.data_dir, args)
-        if args.hindsight_relabelling and False:
-            print('Perform reward relabelling...')
-            dataset, goals = off_utl.mix_task_rollouts(dataset, env, goals, args)
-        dataset = [[ptu.get_numpy(x) for x in d] for d in dataset]
+    args.trajectory_len = path_length
+    dataset, goals = off_utl.load_macaw_dataset(
+        data_dir=offline_buffer_path,
+        add_done_info=env.add_done_info,
+        meta_episode_length=path_length * num_rollouts_per_meta_episode,
+    )
+    dataset = [[x.astype(np.float32) for x in d] for d in dataset]
 
     if args.save_model:
         dir_prefix = args.save_dir_prefix if hasattr(args, 'save_dir_prefix') \

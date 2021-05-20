@@ -18,7 +18,6 @@ from utils.logging import setup_logger, logger
 
 env_name_to_args = {
     'ant_dir': args_ant_dir,
-    'cheetah_vel': args_cheetah_vel,
 }
 
 from doodad.wrappers.easy_launch import save_doodad_config, DoodadConfig
@@ -26,26 +25,22 @@ from doodad.wrappers.easy_launch import save_doodad_config, DoodadConfig
 
 def _borel(
         log_dir,
+        offline_buffer_path,
         pretrained_vae_dir,
         vae_model_name,
         env_type,
         transform_data_bamdp,
         seed,
-        offline_buffer_path=None,
-        offline_buffer_path_to_save_to=None,
-        pretrain_buffer_path='',
-        saved_tasks_path='',
+        path_length,
+        num_rollouts_per_meta_episode,
+        save_data_path='',
         debug=False,
-        max_rollouts_per_task=3,
 ):
     random.seed(seed)
     np.random.seed(seed)
     torch.manual_seed(seed)
     torch.cuda.manual_seed(seed)
     parser = argparse.ArgumentParser()
-
-    if offline_buffer_path_to_save_to is None:
-        offline_buffer_path_to_save_to = os.path.join(log_dir, 'transformed_data')
 
     # parser.add_argument('--env-type', default='gridworld')
     # parser.add_argument('--env-type', default='point_robot_sparse')
@@ -61,36 +56,36 @@ def _borel(
     # _, env = off_utl.expand_args(args)
     from environments.make_env import make_env
     env = make_env(args.env_name,
-                   args.max_rollouts_per_task,
+                   num_rollouts_per_meta_episode,
                    seed=args.seed,
                    n_tasks=1)
 
+    # Transform data BAMDP (state relabelling)
     args.vae_dir = pretrained_vae_dir
-    args.data_dir = None
-    args.vae_model_name = vae_model_name
+    args.data_dir = offline_buffer_path
     if transform_data_bamdp:
-        # Transform data BAMDP (state relabelling)
         # load VAE for state relabelling
-        print("performing state-relabeling")
         vae_models_path = os.path.join(pretrained_vae_dir, args.env_name,
                                        vae_model_name, 'models')
         vae = VAE(args)
         off_utl.load_trained_vae(vae, vae_models_path)
         # load data and relabel
-        os.makedirs(offline_buffer_path_to_save_to, exist_ok=True)
-        dataset, goals = off_utl.load_pearl_buffer(
-            pretrain_buffer_path,
-            saved_tasks_path,
+        os.makedirs(save_data_path, exist_ok=True)
+        # dataset, goals = off_utl.load_dataset(data_dir=args.data_dir, args=args, arr_type='numpy')
+        dataset, goals = off_utl.load_macaw_dataset(
+            data_dir=offline_buffer_path,
             add_done_info=env.add_done_info,
+            meta_episode_length=path_length * num_rollouts_per_meta_episode,
         )
         dataset = [[x.astype(np.float32) for x in d] for d in dataset]
         bamdp_dataset = off_utl.transform_mdps_ds_to_bamdp_ds(dataset, vae, args)
         # save relabelled data
-        print("saving state-relabeled data to ", offline_buffer_path_to_save_to)
-        off_utl.save_dataset(offline_buffer_path_to_save_to, bamdp_dataset, goals)
-        offline_buffer_path = offline_buffer_path_to_save_to
-    args.relabelled_data_dir = offline_buffer_path
-    args.max_rollouts_per_task = 3
+        off_utl.save_dataset(save_data_path, bamdp_dataset, goals)
+        args.relabelled_data_dir = save_data_path
+    else:
+        args.relabelled_data_dir = offline_buffer_path
+
+    args.max_rollouts_per_task = num_rollouts_per_meta_episode
     args.results_log_dir = log_dir
 
     if debug:

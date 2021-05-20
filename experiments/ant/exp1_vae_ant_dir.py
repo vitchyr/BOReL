@@ -27,7 +27,11 @@ def main(debug, suffix, nseeds, mode):
         'seed': list(range(nseeds)),
     }
     default_params = {
-        'offline_buffer_path':'/preloaded_buffer/ant_dir_32/borel_buffer_iter50/',
+        # 'offline_buffer_path':'/preloaded_buffer/ant_dir_32/borel_buffer_iter50/',
+        'offline_buffer_path': '/preloaded_buffer/ant_dir_32/macaw_buffer_iter20/',
+        'path_length': 200,
+        'num_rollouts_per_meta_episode': 1,
+        'vae-batch-num-rollouts-per-task': 4,
         # 'train_task_idxs': [0, 1, 2, 3],
         # 'test_task_idxs': [4, 5, 6, 7],
     }
@@ -59,6 +63,7 @@ def main(debug, suffix, nseeds, mode):
         code_dirs_to_mount=[
             '/home/vitchyr/git/BOReL/',
             '/home/vitchyr/git/doodad/',
+            '/home/vitchyr/git/railrl/',
         ],
         non_code_dirs_to_mount=[
             dict(
