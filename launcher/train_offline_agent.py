@@ -27,17 +27,22 @@ from doodad.wrappers.easy_launch import save_doodad_config, DoodadConfig
 def _borel(
         log_dir,
         pretrained_vae_dir,
-        vae_model_name,
         env_type,
         transform_data_bamdp,
         seed,
-        offline_buffer_path=None,
+        path_length,
+        meta_episode_len,
+        relabelled_data_dir=None,
         offline_buffer_path_to_save_to=None,
-        pretrain_buffer_path='',
+        offline_buffer_path='',
         saved_tasks_path='',
         debug=False,
-        max_rollouts_per_task=3,
+        vae_model_name=None,
+        load_buffer_kwargs=None,
+        **kwargs,
 ):
+    if load_buffer_kwargs is None:
+        load_buffer_kwargs = {}
     random.seed(seed)
     np.random.seed(seed)
     torch.manual_seed(seed)
@@ -51,9 +56,18 @@ def _borel(
     # parser.add_argument('--env-type', default='point_robot_sparse')
     # parser.add_argument('--env-type', default='cheetah_vel')
     parser.add_argument('--env-type', default=env_type)
-    args, rest_args = parser.parse_known_args(args=[])
+    extra_args = []
+    for k, v in kwargs.items():
+        extra_args.append('--{}'.format(k))
+        extra_args.append(str(v))
+    args, rest_args = parser.parse_known_args(args=extra_args)
     args = env_name_to_args[env_type].get_args(rest_args)
     set_gpu_mode(torch.cuda.is_available() and args.use_gpu)
+
+    if vae_model_name is None:
+        vae_model_name = os.listdir(
+            os.path.join(pretrained_vae_dir, args.env_name)
+        )[0]
 
     vae_args = config_utl.load_config_file(os.path.join(pretrained_vae_dir, args.env_name,
                                                         vae_model_name, 'online_config.json'))
@@ -79,17 +93,20 @@ def _borel(
         # load data and relabel
         os.makedirs(offline_buffer_path_to_save_to, exist_ok=True)
         dataset, goals = off_utl.load_pearl_buffer(
-            pretrain_buffer_path,
+            offline_buffer_path,
             saved_tasks_path,
             add_done_info=env.add_done_info,
+            path_length=path_length,
+            meta_episode_len=meta_episode_len,
+            **load_buffer_kwargs
         )
         dataset = [[x.astype(np.float32) for x in d] for d in dataset]
         bamdp_dataset = off_utl.transform_mdps_ds_to_bamdp_ds(dataset, vae, args)
         # save relabelled data
         print("saving state-relabeled data to ", offline_buffer_path_to_save_to)
         off_utl.save_dataset(offline_buffer_path_to_save_to, bamdp_dataset, goals)
-        offline_buffer_path = offline_buffer_path_to_save_to
-    args.relabelled_data_dir = offline_buffer_path
+        relabelled_data_dir = offline_buffer_path_to_save_to
+    args.relabelled_data_dir = relabelled_data_dir
     args.max_rollouts_per_task = 3
     args.results_log_dir = log_dir
 

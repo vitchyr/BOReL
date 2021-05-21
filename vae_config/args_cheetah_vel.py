@@ -7,14 +7,14 @@ def get_args(rest_args):
     parser = argparse.ArgumentParser()
     parser.add_argument('--env-name', default='HalfCheetahVel-v0')
     parser.add_argument('--seed', type=int, default=73)
-    parser.add_argument('--max-rollouts-per-task', default=2)
+    parser.add_argument('--max-rollouts-per-task', type=int, default=2)
     parser.add_argument('--num-trajs-per-task', type=int, default=None)
     parser.add_argument('--hindsight-relabelling', type=int, default=True)
     # parser.add_argument('--hindsight-relabelling', type=int, default=False)
 
-    parser.add_argument('--num-iters', default=100)
-    parser.add_argument('--tasks-batch-size', default=4)
-    parser.add_argument('--vae-batch-num-rollouts-per-task', default=8)
+    parser.add_argument('--num-iters', type=int, default=100)
+    parser.add_argument('--tasks-batch-size', type=int, default=4)
+    parser.add_argument('--vae-batch-num-rollouts-per-task', type=int, default=8)
     parser.add_argument('--vae-lr', type=float, default=0.0003, help='learning rate for VAE (default: 3e-4)')
     parser.add_argument('--kl-weight', type=float, default=.05, help='weight for the KL term')
     parser.add_argument('--vae-batch-num-elbo-terms', default=None,

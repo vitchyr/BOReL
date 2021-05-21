@@ -276,7 +276,19 @@ def train(vae, dataset, args):
                            os.path.join(save_path, "state_decoder{0}.pt".format(iter_ + 1)))
 
 
-def _train_vae(log_dir, pretrain_buffer_path, saved_tasks_path, env_type, seed):
+def _train_vae(
+        log_dir,
+        offline_buffer_path,
+        saved_tasks_path,
+        env_type,
+        seed,
+        path_length,
+        meta_episode_len,
+        load_buffer_kwargs=None,
+        **kwargs
+):
+    if load_buffer_kwargs is None:
+        load_buffer_kwargs = {}
     random.seed(seed)
     np.random.seed(seed)
     torch.manual_seed(seed)
@@ -287,7 +299,11 @@ def _train_vae(log_dir, pretrain_buffer_path, saved_tasks_path, env_type, seed):
     # parser.add_argument('--env-type', default='point_robot_sparse')
     # parser.add_argument('--env-type', default='cheetah_vel')
     parser.add_argument('--env-type', default='ant_semicircle_sparse')
-    args, rest_args = parser.parse_known_args(args=[])
+    extra_args = []
+    for k, v in kwargs.items():
+        extra_args.append('--{}'.format(k))
+        extra_args.append(str(v))
+    args, rest_args = parser.parse_known_args(args=extra_args)
 
     # --- GridWorld ---
     if env_type == 'cheetah_vel':
@@ -307,27 +323,20 @@ def _train_vae(log_dir, pretrain_buffer_path, saved_tasks_path, env_type, seed):
     args.save_dir = os.path.join(log_dir, 'trained_vae')
 
 
-    if True: #args.env_name == 'AntDir-v0':
-        # args.data_dir = '/home/vitchyr/mnt2/log2/21-02-22-ant-awac--exp7-ant-dir-4-eval-4-train-sac-to-get-buffer-longer/21-02-22-ant-awac--exp7-ant-dir-4-eval-4-train-sac-to-get-buffer-longer_2021_02_23_06_09_23_id000--s270987/borel_buffer/'
-        # args.data_dir = '/home/vitchyr/mnt2/log2/demos/ant_dir_32/borel_buffer_iter50/'
-        # args.data_dir = offline_buffer_path
-        args.trajectory_len = 200
-        # dataset, goals = off_utl.load_rlkit_to_macaw_dataset(
-        #     data_dir=args.data_dir,
-        #     add_done_info=env.add_done_info,
-        # )
-        dataset, goals = off_utl.load_pearl_buffer(
-            pretrain_buffer_path,
-            saved_tasks_path,
-            add_done_info=env.add_done_info,
-        )
-        dataset = [[x.astype(np.float32) for x in d] for d in dataset]
-    else:
-        dataset, goals = off_utl.load_dataset(args.data_dir, args)
-        if args.hindsight_relabelling and False:
-            print('Perform reward relabelling...')
-            dataset, goals = off_utl.mix_task_rollouts(dataset, env, goals, args)
-        dataset = [[ptu.get_numpy(x) for x in d] for d in dataset]
+    args.trajectory_len = path_length
+    dataset, goals = off_utl.load_pearl_buffer(
+        offline_buffer_path,
+        saved_tasks_path,
+        add_done_info=env.add_done_info,
+        path_length=path_length,
+        meta_episode_len=meta_episode_len,
+        **load_buffer_kwargs
+    )
+    for data in dataset:
+        print(data[0].shape)
+    import ipdb; ipdb.set_trace()
+
+    dataset = [[x.astype(np.float32) for x in d] for d in dataset]
 
     if args.save_model:
         dir_prefix = args.save_dir_prefix if hasattr(args, 'save_dir_prefix') \

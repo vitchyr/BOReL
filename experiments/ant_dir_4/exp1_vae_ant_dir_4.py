@@ -23,12 +23,19 @@ def main(debug, suffix, nseeds, mode):
         nseeds = 1
 
     params = {
-        'env_type': ['cheetah_vel'],
         'seed': list(range(nseeds)),
     }
     default_params = {
-        'pretrain_buffer_path': "/preloaded_data/21-05-05_pearl-awac-ant-awac--exp59-half-cheetah-130-online-pearl/16h-02m-49s_run2/extra_snapshot_itr50.cpkl",
+        'env_type': 'ant_dir',
+        'offline_buffer_path': "/preloaded_data/21-02-22-ant-awac--exp7-ant-dir-4-eval-4-train-sac-to-get-buffer-longer/21-02-22-ant-awac--exp7-ant-dir-4-eval-4-train-sac-to-get-buffer-longer_2021_02_23_06_09_23_id000--s270987/extra_snapshot_itr400.cpkl",
         'saved_tasks_path': "/preloaded_data/21-05-05_pearl-awac-ant-awac--exp59-half-cheetah-130-online-pearl/16h-02m-49s_run2/tasks_description.joblib",
+        'vae-batch-num-rollouts-per-task': 4,
+        'load_buffer_kwargs': {
+            'end_idx': 200000,
+            'start_idx': -1200,
+        },
+        'path_length': 200,
+        'meta_episode_len': 600,
     }
 
     if mode == 'local':

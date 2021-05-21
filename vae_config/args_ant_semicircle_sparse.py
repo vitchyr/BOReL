@@ -14,7 +14,7 @@ def get_args(rest_args):
 
     parser.add_argument('--num-iters', default=100)
     parser.add_argument('--tasks-batch-size', default=4)
-    parser.add_argument('--vae-batch-num-rollouts-per-task', default=8)
+    parser.add_argument('--vae-batch-num-rollouts-per-task', type=int, default=8)
     parser.add_argument('--vae-lr', type=float, default=0.0003, help='learning rate for VAE (default: 3e-4)')
     parser.add_argument('--kl-weight', type=float, default=.05, help='weight for the KL term')
     parser.add_argument('--vae-batch-num-elbo-terms', default=None,

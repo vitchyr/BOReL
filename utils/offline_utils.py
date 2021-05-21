@@ -181,8 +181,11 @@ def load_pearl_buffer(
         pretrain_buffer_path,
         saved_tasks_path,
         discount_factor=0.99,
+        add_done_info=True,
         path_length=200,
-        add_done_info=False,
+        meta_episode_len=600,
+        start_idx=0,
+        end_idx=None,
 ):
     snapshot = joblib.load(pretrain_buffer_path)
     task_idx_to_buffer = {}
@@ -191,7 +194,12 @@ def load_pearl_buffer(
     for task_idx in saved_replay_buffer.task_buffers:
         rlkit_buffer = saved_replay_buffer.task_buffers[task_idx]
         buffer = rlkit_buffer_to_borel_format(
-            rlkit_buffer, discount_factor, path_length=path_length,
+            rlkit_buffer, discount_factor,
+            path_length=path_length,
+            meta_episode_len=meta_episode_len,
+            add_done_info=add_done_info,
+            start_idx=start_idx,
+            end_idx=end_idx,
         )
         task_idx_to_buffer[task_idx] = buffer
 
@@ -203,7 +211,8 @@ def load_pearl_buffer(
     dataset = []
     final_goals = []
     for idx, buffer in task_idx_to_buffer.items():
-        dataset.append(_clean_dataset(buffer, add_done_info=add_done_info))
+        # add_done_info=False because I already did it above
+        dataset.append(_clean_dataset(buffer, add_done_info=False))
         final_goals.append(goals[idx])
     return dataset, np.array(final_goals).reshape(len(final_goals), -1)
 
