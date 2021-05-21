@@ -33,6 +33,7 @@ def main(debug, suffix, nseeds, mode):
         'load_buffer_kwargs': {
             'start_idx': -1200,
         },
+        'num-train-tasks': 100,
         'path_length': 200,
         'meta_episode_len': 600,
         'pretrained_vae_dir': "/preloaded_data/21-05-20_borel-exp1_vae_ant_dir_120/run0_22h-36m-40s/trained_vae/",

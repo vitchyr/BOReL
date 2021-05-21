@@ -251,7 +251,11 @@ def load_dataset(data_dir, args, num_tasks=None, allow_dense_data_loading=True, 
     if num_tasks is None:
         tasks = np.random.permutation(len(all_dirs))
     else:
-        tasks = np.random.choice(len(all_dirs), num_tasks)
+        if len(all_dirs) < num_tasks:
+            print("NOT ENOUGH TASKS SAVED. Only using number of saved tasks")
+            tasks = np.array(list(range(len(all_dirs))))
+        else:
+            tasks = np.random.choice(len(all_dirs), num_tasks)
     for i, task in enumerate(tasks):
         exp_dir = os.path.join(exps_dir, all_dirs[task])
         goals.append(extract_goal_from_path(all_dirs[task]))

@@ -39,6 +39,7 @@ def main(debug, suffix, nseeds, mode):
         },
         'path_length': 200,
         'meta_episode_len': 600,
+        'num-train-tasks': 4,
     }
 
     if mode == 'local':

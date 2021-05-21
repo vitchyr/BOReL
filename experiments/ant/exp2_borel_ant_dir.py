@@ -28,6 +28,7 @@ def main(debug, dry, suffix, nseeds, mode):
         'vae_model_name': 'relabel_semi_modified_init_state_dist__30_04_23_21_33',
         'transform_data_bamdp': False,
         'debug': False,
+        'num-train-tasks': 4,
         # 'save_data_path': '/preloaded_buffer/ant_dir_32/borel_buffer_iter50_relabelled/',
         # 'transform_data_bamdp': True,
         # 'train_task_idxs': [0, 1, 2, 3],
