@@ -10,7 +10,7 @@ def get_args(rest_args):
 
     parser.add_argument('--belief-rewards', default=False, help='use R+=E[R]')
     parser.add_argument('--num-belief-samples', default=20)
-    parser.add_argument('--num-train-tasks', default=100)
+    parser.add_argument('--num-train-tasks', type=int, default=100)
     parser.add_argument('--num-eval-tasks', default=20)
     parser.add_argument('--hindsight-relabelling', default=False)
 

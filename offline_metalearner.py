@@ -61,6 +61,7 @@ class OfflineMetaLearner:
         # create environment for evaluation
         self.env = make_env(args.env_name,
                             args.max_rollouts_per_task,
+                            presampled_tasks=args.presampled_tasks,
                             seed=args.seed,
                             n_tasks=self.args.num_eval_tasks)
         if self.args.env_name == 'GridNavi-v2':

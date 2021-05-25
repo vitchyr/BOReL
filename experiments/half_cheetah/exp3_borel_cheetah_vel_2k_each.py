@@ -18,38 +18,28 @@ def main(debug, suffix, nseeds, mode):
         suffix,
     )
 
-    default_params = {
-        'env_type': 'ant_dir',
-        'offline_buffer_path': "/preloaded_data/21-05-16_pearl-awac-ant-awac--exp84-ant-dir-120-online-pearl-redo-with-direction-in-degrees/22h-45m-25s_run0/extra_snapshot_itr100.cpkl",
-        'saved_tasks_path': "/preloaded_data/21-05-16_pearl-awac-ant-awac--exp84-ant-dir-120-online-pearl-redo-with-direction-in-degrees/22h-45m-25s_run0/tasks_description.joblib",
-        'load_buffer_kwargs': {
-            'start_idx': -1200,
-        },
-        'num-train-tasks': 100,
-        'path_length': 200,
-        'meta_episode_len': 600,
-        'pretrained_vae_dir': "/preloaded_data/21-05-20_borel-exp1_vae_ant_dir_120/run0_22h-36m-40s/trained_vae/",
-        'offline_buffer_path_to_save_to': '/preloaded_data/demos/ant_dir_120/pearl_buffer_iter100_relabelled/',
-        'transform_data_bamdp': True,
-        'num-iters': 50,
-        'rl-updates-per-iter': 1000,
-    }
-    # exp_name = 'dev--' + exp_name
-    # default_params['transform_data_bamdp'] = False
-    # default_params['relabelled_data_dir'] = '/preloaded_data/demos/ant_dir_120/pearl_buffer_iter100_relabelled/'
-
     if debug:
         exp_name = 'dev--' + exp_name
         mode = 'local'
         nseeds = 1
-        # default_params['num-iters'] = 3
-        # default_params['rl-updates-per-iter'] = 5
-        default_params['transform_data_bamdp'] = False
-        default_params['log-interval'] = 1
-        default_params['relabelled_data_dir'] = '/preloaded_data/demos/ant_dir_120/pearl_buffer_iter100_relabelled/'
 
     params = {
+        'env_type': ['cheetah_vel'],
         'seed': list(range(nseeds)),
+    }
+    default_params = {
+        'offline_buffer_path': "/preloaded_data/21-05-05_pearl-awac-ant-awac--exp59-half-cheetah-130-online-pearl/16h-02m-49s_run2/extra_snapshot_itr50.cpkl",
+        'saved_tasks_path': "/preloaded_data/21-05-05_pearl-awac-ant-awac--exp59-half-cheetah-130-online-pearl/16h-02m-49s_run2/tasks_description.joblib",
+        'vae_model_name': 'relabel__21_05_04_10_19',
+        'pretrained_vae_dir': "/preloaded_data/21-05-20_borel-exp1_vae_cheetah_vel/run0_21h-10m-01s/trained_vae/",
+        'offline_buffer_path_to_save_to': '/preloaded_data/demos/half_cheetah_vel_130/pearl_buffer_iter50_relabelled_v2/',
+        'transform_data_bamdp': True,
+        'load_buffer_kwargs': {
+            'end_idx': 2400,
+        },
+        'path_length': 200,
+        'meta_episode_len': 600,
+        'num-train-tasks': 100,
     }
 
     if mode == 'local':

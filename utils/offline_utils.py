@@ -80,6 +80,7 @@ def expand_args(args, include_act_space=False):
     # create env to get parameters
     env = make_env(args.env_name,
                    args.max_rollouts_per_task,
+                   presampled_tasks=args.presampled_tasks,
                    seed=args.seed,
                    n_tasks=1)
 
@@ -179,7 +180,7 @@ def load_rlkit_to_macaw_dataset(data_dir, add_done_info=False):
 
 def load_pearl_buffer(
         pretrain_buffer_path,
-        saved_tasks_path,
+        tasks,
         discount_factor=0.99,
         add_done_info=True,
         path_length=200,
@@ -203,8 +204,6 @@ def load_pearl_buffer(
         )
         task_idx_to_buffer[task_idx] = buffer
 
-    task_data = joblib.load(saved_tasks_path)
-    tasks = task_data['tasks']
     goal_key = list(tasks[0].keys())[0]
     goals = [t[goal_key] for t in tasks]
 

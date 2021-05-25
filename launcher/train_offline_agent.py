@@ -1,4 +1,5 @@
 
+import joblib
 import random
 import numpy as np
 import os
@@ -74,8 +75,12 @@ def _borel(
     args = config_utl.merge_configs(vae_args, args)     # order of input to this function is important
     # _, env = off_utl.expand_args(args)
     from environments.make_env import make_env
+    task_data = joblib.load(saved_tasks_path)
+    tasks = task_data['tasks']
+    args.presampled_tasks = tasks
     env = make_env(args.env_name,
                    args.max_rollouts_per_task,
+                   presampled_tasks=tasks,
                    seed=args.seed,
                    n_tasks=1)
 
@@ -94,7 +99,7 @@ def _borel(
         os.makedirs(offline_buffer_path_to_save_to, exist_ok=True)
         dataset, goals = off_utl.load_pearl_buffer(
             offline_buffer_path,
-            saved_tasks_path,
+            tasks,
             add_done_info=env.add_done_info,
             path_length=path_length,
             meta_episode_len=meta_episode_len,
