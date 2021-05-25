@@ -151,13 +151,11 @@ def load_trained_vae(vae, path):
     vae.load_model(**paths)
 
 
-def load_macaw_dataset(data_dir, add_done_info=False, meta_episode_length=200):
+def load_macaw_dataset(data_dir, tasks, add_done_info=False, meta_episode_length=200):
     from pathlib import Path
-    import pickle
     import glob
     import re
     base_dir = Path(data_dir)
-    tasks = pickle.load(open(str(base_dir / 'tasks.pkl'), 'rb'))
     goals = [t['goal'] for t in tasks]
     task_idx_to_path = {}
     for buffer_path in glob.glob(str(base_dir / 'macaw_buffer*')):

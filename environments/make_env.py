@@ -11,10 +11,11 @@ from gym.spaces.box import Box
 from environments.wrappers import VariBadWrapper
 
 
-def make_env(env_id, episodes_per_task, seed=None, **kwargs):
+def make_env(env_id, episodes_per_task, presampled_tasks, seed=None, **kwargs):
     env = gym.make(env_id, **kwargs)
     if seed is not None:
         env.seed(seed)
+    env.unwrapped.tasks = presampled_tasks
     env = VariBadWrapper(env=env,
                          episodes_per_task=episodes_per_task,
                          )

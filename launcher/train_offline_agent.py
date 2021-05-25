@@ -55,10 +55,18 @@ def _borel(
     args = config_utl.merge_configs(vae_args, args)     # order of input to this function is important
     # _, env = off_utl.expand_args(args)
     from environments.make_env import make_env
+
+    from pathlib import Path
+    import pickle
+    base_dir = Path(offline_buffer_path)
+    tasks = pickle.load(open(str(base_dir / 'tasks.pkl'), 'rb'))
     env = make_env(args.env_name,
                    num_rollouts_per_meta_episode,
+                   presampled_tasks=tasks,
                    seed=args.seed,
                    n_tasks=1)
+
+    args.presampled_tasks = tasks
 
     # Transform data BAMDP (state relabelling)
     args.vae_dir = pretrained_vae_dir
@@ -74,6 +82,7 @@ def _borel(
         # dataset, goals = off_utl.load_dataset(data_dir=args.data_dir, args=args, arr_type='numpy')
         dataset, goals = off_utl.load_macaw_dataset(
             data_dir=offline_buffer_path,
+            tasks=tasks,
             add_done_info=env.add_done_info,
             meta_episode_length=path_length * num_rollouts_per_meta_episode,
         )
