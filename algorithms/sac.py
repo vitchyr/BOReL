@@ -137,7 +137,7 @@ class SAC(nn.Module):
 
             self.alpha_entropy_optim.zero_grad()
             alpha_entropy_loss.backward()
-            self.alpha_optim.step()
+            self.alpha_entropy_optim.step()
 
             self.alpha_entropy = self.log_alpha_entropy.exp()
             # alpha_entropy_tlogs = self.alpha_entropy.clone()    # For TensorboardX logs

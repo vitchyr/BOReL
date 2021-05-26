@@ -9,6 +9,7 @@ class MultitaskAntEnv(AntEnv):
         self._task = task
         self.tasks = self.sample_tasks(n_tasks)
         self._goal = self.tasks[0]['goal']
+        self.eval_task_idxs = None
         super(MultitaskAntEnv, self).__init__(**kwargs)
 
     """
@@ -29,6 +30,9 @@ class MultitaskAntEnv(AntEnv):
 
     def get_all_task_idx(self):
         return range(len(self.tasks))
+
+    def get_all_eval_task_idx(self):
+        return range(100, 120)
 
     def reset_task(self, idx):
         self._task = self.tasks[idx]

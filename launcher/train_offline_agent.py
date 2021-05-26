@@ -63,7 +63,7 @@ def _borel(
         extra_args.append(str(v))
     args, rest_args = parser.parse_known_args(args=extra_args)
     args = env_name_to_args[env_type].get_args(rest_args)
-    set_gpu_mode(torch.cuda.is_available() and args.use_gpu)
+    set_gpu_mode(torch.cuda.is_available() and args.use_gpu, gpu_id=1)
 
     if vae_model_name is None:
         vae_model_name = os.listdir(

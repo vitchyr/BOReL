@@ -25,14 +25,16 @@ def main(debug, suffix, nseeds, mode):
         'load_buffer_kwargs': {
             'start_idx': -1200,
         },
-        'num-train-tasks': 100,
         'path_length': 200,
+        'automatic-entropy-tuning': True,
+        'alpha-lr': 0.001,
+        # 'entropy-alpha': 10.,
+        'soft-target-tau': 1e-4,
         'meta_episode_len': 600,
         'pretrained_vae_dir': "/preloaded_data/21-05-20_borel-exp1_vae_ant_dir_120/run0_22h-36m-40s/trained_vae/",
         'offline_buffer_path_to_save_to': '/preloaded_data/demos/ant_dir_120/pearl_buffer_iter100_relabelled/',
-        'transform_data_bamdp': True,
-        'num-iters': 50,
-        'rl-updates-per-iter': 1000,
+        'relabelled_data_dir': '/preloaded_data/demos/ant_dir_120/pearl_buffer_iter100_relabelled/',
+        'transform_data_bamdp': False,
     }
     # exp_name = 'dev--' + exp_name
     # default_params['transform_data_bamdp'] = False
@@ -44,9 +46,9 @@ def main(debug, suffix, nseeds, mode):
         nseeds = 1
         # default_params['num-iters'] = 3
         # default_params['rl-updates-per-iter'] = 5
-        default_params['transform_data_bamdp'] = False
-        default_params['log-interval'] = 1
-        default_params['relabelled_data_dir'] = '/preloaded_data/demos/ant_dir_120/pearl_buffer_iter100_relabelled/'
+        # default_params['transform_data_bamdp'] = False
+        # default_params['log-interval'] = 1
+        # default_params['relabelled_data_dir'] = '/preloaded_data/demos/ant_dir_120/pearl_buffer_iter100_relabelled/'
 
     params = {
         'seed': list(range(nseeds)),

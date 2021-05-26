@@ -10,7 +10,7 @@ def get_args(rest_args):
 
     parser.add_argument('--belief-rewards', default=False, help='use R+=E[R]')
     parser.add_argument('--num-belief-samples', default=20)
-    parser.add_argument('--num-train-tasks', type=int, default=80)
+    parser.add_argument('--num-train-tasks', type=int, default=100)
     parser.add_argument('--num-eval-tasks', default=20)
     parser.add_argument('--hindsight-relabelling', default=False)
 
@@ -19,19 +19,21 @@ def get_args(rest_args):
     parser.add_argument('--meta-batch', type=int, default=16,
                         help='number of tasks to average the gradient across')
 
-    parser.add_argument('--num-iters', type=int, default=3000, help='number meta-training iterates')
-    parser.add_argument('--rl-updates-per-iter', type=int, default=2000, help='number of RL steps per iteration')
+    parser.add_argument('--num-iters', type=int, default=100, help='number meta-training iterates')
+    parser.add_argument('--rl-updates-per-iter', type=int, default=4000, help='number of RL steps per iteration')
     parser.add_argument('--batch-size', type=int, default=256, help='number of transitions in RL batch (per task)')
 
-    parser.add_argument('--dqn-layers', nargs='+', default=[256, 256])
-    parser.add_argument('--policy-layers', nargs='+', default=[256, 256])
+    parser.add_argument('--dqn-layers', nargs='+', default=[300, 300, 300])
+    parser.add_argument('--policy-layers', nargs='+', default=[300, 300, 300])
+    # parser.add_argument('--dqn-layers', nargs='+', default=[256, 256])
+    # parser.add_argument('--policy-layers', nargs='+', default=[256, 256])
 
-    parser.add_argument('--actor-lr', type=float, default=0.00003, help='learning rate for actor (default: 3e-4)')
+    parser.add_argument('--actor-lr', type=float, default=0.0003, help='learning rate for actor (default: 3e-4)')
     parser.add_argument('--critic-lr', type=float, default=0.0003, help='learning rate for critic (default: 3e-4)')
     parser.add_argument('--clip-grad-value', type=float, default=None, help='clip gradients')
 
     parser.add_argument('--entropy-alpha', type=float, default=0.2, help='Entropy coefficient')
-    parser.add_argument('--automatic-entropy-tuning', default=False)
+    parser.add_argument('--automatic-entropy-tuning', type=bool, default=False)
     parser.add_argument('--alpha-lr', type=float, default=None,
                         help='learning rate for entropy coeff, if automatic tuning is True')
     parser.add_argument('--gamma', type=float, default=0.99, help='discount factor for rewards (default: 0.99)')
@@ -47,9 +49,9 @@ def get_args(rest_args):
     parser.add_argument('--alpha-cql', default=2.)
 
     # logging, saving, evaluation
-    parser.add_argument('--log-interval', type=int, default=20,
+    parser.add_argument('--log-interval', type=int, default=1,
                         help='log interval, one log per n iterations (default: 20)')
-    parser.add_argument('--save-interval', type=int, default=100,
+    parser.add_argument('--save-interval', type=int, default=20,
                         help='save models interval, every # iterations (default: 100)')
 
     parser.add_argument('--log-tensorboard', default=True, help='whether to use tb logger')

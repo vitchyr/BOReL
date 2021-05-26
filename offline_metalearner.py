@@ -214,7 +214,7 @@ class OfflineMetaLearner:
         #     n_grid_points = centers.shape[0]
         #     reward_belief_discretized = np.zeros((num_tasks, self.args.trajectory_len, centers.shape[0]))
 
-        for task in self.env.unwrapped.get_all_task_idx():
+        for task_loop_i, task in enumerate(self.env.unwrapped.get_all_eval_task_idx()):
             obs = ptu.from_numpy(self.env.reset(task))
             obs = obs.reshape(-1, obs.shape[-1])
             step = 0
@@ -223,7 +223,7 @@ class OfflineMetaLearner:
             with torch.no_grad():
                 task_sample, task_mean, task_logvar, hidden_state = self.vae.encoder.prior(batch_size=1)
 
-            observations[task, step, :] = ptu.get_numpy(obs[0, :obs_size])
+            observations[task_loop_i, step, :] = ptu.get_numpy(obs[0, :obs_size])
 
             for episode_idx in range(num_episodes):
                 running_reward = 0.
@@ -247,8 +247,8 @@ class OfflineMetaLearner:
                                                                                              reward=reward,
                                                                                              done=done,
                                                                                              hidden_state=hidden_state)
-                    rewards[task, step] = reward.item()
-                    reward_preds[task, step] = ptu.get_numpy(
+                    rewards[task_loop_i, step] = reward.item()
+                    reward_preds[task_loop_i, step] = ptu.get_numpy(
                         self.vae.reward_decoder(task_sample, next_obs, obs, action)[0, 0])
 
                     # This part is very specific for the Semi-Circle env
@@ -264,17 +264,17 @@ class OfflineMetaLearner:
                     #                                                   ptu.zeros(centers.shape[0], 1)), dim=-1).unsqueeze(0),
                     #                                        None)[:, 0])
 
-                    observations[task, step + 1, :] = ptu.get_numpy(next_obs[0, :obs_size])
+                    observations[task_loop_i, step + 1, :] = ptu.get_numpy(next_obs[0, :obs_size])
                     if self.args.policy != 'dqn':
-                        log_probs[task, step] = ptu.get_numpy(log_prob[0])
+                        log_probs[task_loop_i, step] = ptu.get_numpy(log_prob[0])
 
                     if "is_goal_state" in dir(self.env.unwrapped) and self.env.unwrapped.is_goal_state():
-                        success_rate[task] = 1.
+                        success_rate[task_loop_i] = 1.
                     # set: obs <- next_obs
                     obs = next_obs.clone()
                     step += 1
 
-                returns_per_episode[task, episode_idx] = running_reward
+                returns_per_episode[task_loop_i, episode_idx] = running_reward
 
         if self.args.policy == 'dqn':
             return returns_per_episode, success_rate, observations, rewards, reward_preds
