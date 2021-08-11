@@ -60,6 +60,9 @@ class HalfCheetahVelEnv(HalfCheetahEnv):
     def get_all_task_idx(self):
         return range(len(self.tasks))
 
+    def get_all_eval_task_idx(self):
+        return range(100, 130)
+
     def reset_task(self, idx):
         self._task = self.tasks[idx]
         self._goal_vel = self._task['velocity']

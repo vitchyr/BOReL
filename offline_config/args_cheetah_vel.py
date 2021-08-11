@@ -11,7 +11,7 @@ def get_args(rest_args):
     parser.add_argument('--belief-rewards', default=False, help='use R+=E[R]')
     parser.add_argument('--num-belief-samples', default=20)
     parser.add_argument('--num-train-tasks', type=int, default=100)
-    parser.add_argument('--num-eval-tasks', default=20)
+    parser.add_argument('--num-eval-tasks', default=30)
     parser.add_argument('--hindsight-relabelling', default=False)
 
     parser.add_argument('--num-trajs-per-task', type=int, default=None,
@@ -19,8 +19,10 @@ def get_args(rest_args):
     parser.add_argument('--meta-batch', type=int, default=16,
                         help='number of tasks to average the gradient across')
 
-    parser.add_argument('--num-iters', type=int, default=1000, help='number meta-training iterates')
-    parser.add_argument('--rl-updates-per-iter', type=int, default=1000, help='number of RL steps per iteration')
+    # parser.add_argument('--num-iters', type=int, default=1000, help='number meta-training iterates')
+    # parser.add_argument('--rl-updates-per-iter', type=int, default=1000, help='number of RL steps per iteration')
+    parser.add_argument('--num-iters', type=int, default=100, help='number meta-training iterates')
+    parser.add_argument('--rl-updates-per-iter', type=int, default=4000, help='number of RL steps per iteration')
     parser.add_argument('--batch-size', type=int, default=256, help='number of transitions in RL batch (per task)')
 
     parser.add_argument('--dqn-layers', nargs='+', default=[256, 256])

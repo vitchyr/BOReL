@@ -32,14 +32,16 @@ def main(debug, suffix, nseeds, mode):
         'saved_tasks_path': "/preloaded_data/21-05-05_pearl-awac-ant-awac--exp59-half-cheetah-130-online-pearl/16h-02m-49s_run2/tasks_description.joblib",
         'vae_model_name': 'relabel__21_05_04_10_19',
         'pretrained_vae_dir': "/preloaded_data/21-05-20_borel-exp1_vae_cheetah_vel/run0_21h-10m-01s/trained_vae/",
-        'offline_buffer_path_to_save_to': '/preloaded_data/demos/half_cheetah_vel_130/pearl_buffer_iter50_relabelled_v2/',
-        'transform_data_bamdp': True,
+        # 'offline_buffer_path_to_save_to': '/preloaded_data/demos/half_cheetah_vel_130/pearl_buffer_iter50_relabelled_v2/',
+        'relabelled_data_dir': '/preloaded_data/demos/half_cheetah_vel_130/pearl_buffer_iter50_relabelled_v2/',
+        'transform_data_bamdp': False,
         'load_buffer_kwargs': {
             'end_idx': 1200,
         },
         'path_length': 200,
         'meta_episode_len': 600,
         'num-train-tasks': 100,
+        'gpu_id': 1,
     }
 
     if mode == 'local':

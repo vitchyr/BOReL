@@ -35,6 +35,7 @@ def main(debug, suffix, nseeds, mode):
         'offline_buffer_path_to_save_to': '/preloaded_data/demos/ant_dir_120/pearl_buffer_iter100_relabelled/',
         'relabelled_data_dir': '/preloaded_data/demos/ant_dir_120/pearl_buffer_iter100_relabelled/',
         'transform_data_bamdp': False,
+        'gpu_id': 0,
     }
     # exp_name = 'dev--' + exp_name
     # default_params['transform_data_bamdp'] = False
