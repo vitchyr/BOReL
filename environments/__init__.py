@@ -41,6 +41,24 @@ register(
     max_episode_steps=200
 )
 
+register(
+    'WalkerRandParam-v0',
+    entry_point='environments.wrappers:mujoco_wrapper',
+    kwargs={'entry_point': 'environments.mujoco.rand_param_envs.walker2d_rand_params:Walker2DRandParamsEnv'},
+    max_episode_steps=200
+)
+register(
+    'HopperRandParam-v0',
+    entry_point='environments.wrappers:mujoco_wrapper',
+    kwargs={'entry_point': 'environments.mujoco.rand_param_envs.hopper_rand_params:HopperRandParamsEnv'},
+    max_episode_steps=200
+)
+register(
+    'HumanoidDir-v0',
+    entry_point='environments.wrappers:mujoco_wrapper',
+    kwargs={'entry_point': 'environments.mujoco.rand_param_envs.humanoid_dir:HumanoidDirEnv'},
+    max_episode_steps=200
+)
 # # ----------- GridWorld ----------- # #
 
 register(

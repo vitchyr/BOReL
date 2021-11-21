@@ -81,8 +81,8 @@ def expand_args(args, include_act_space=False):
     env = make_env(args.env_name,
                    args.max_rollouts_per_task,
                    presampled_tasks=args.presampled_tasks,
-                   seed=args.seed,
-                   n_tasks=1)
+                   seed=args.seed)
+                   # n_tasks=1)
 
     if isinstance(env.action_space, gym.spaces.discrete.Discrete):
         args.action_dim = 1
@@ -191,6 +191,8 @@ def load_pearl_buffer(
     snapshot = joblib.load(pretrain_buffer_path)
     task_idx_to_buffer = {}
     key = 'replay_buffer'
+    if key not in snapshot:
+        snapshot[key] = snapshot['algorithm'].replay_buffer
     saved_replay_buffer = snapshot[key]
     for task_idx in saved_replay_buffer.task_buffers:
         rlkit_buffer = saved_replay_buffer.task_buffers[task_idx]

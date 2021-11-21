@@ -4,6 +4,7 @@ import numpy as np
 from gym import Env
 from gym import spaces
 import os
+from environments.mujoco.rand_param_envs.gym import spaces as rspaces
 
 
 def mujoco_wrapper(entry_point, **kwargs):
@@ -40,7 +41,7 @@ class VariBadWrapper(gym.Wrapper):
             self.add_done_info = False
 
         if self.add_done_info:
-            if isinstance(self.observation_space, spaces.Box):
+            if isinstance(self.observation_space, spaces.Box) or isinstance(self.observation_space, rspaces.Box):
                 if len(self.observation_space.shape) > 1:
                     raise ValueError  # can't add additional info for obs of more than 1D
                 self.observation_space = spaces.Box(low=np.array([*self.observation_space.low, 0]),  # shape will be deduced from this

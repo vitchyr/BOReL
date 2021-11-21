@@ -1,6 +1,6 @@
-
 import argparse
 import datetime
+import joblib
 import os
 import random
 import numpy as np
@@ -16,7 +16,13 @@ from torchkit import pytorch_utils as ptu
 from models.vae import VAE
 from tensorboardX import SummaryWriter
 import time
-from vae_config import args_gridworld, args_point_robot_sparse, args_cheetah_vel, args_ant_semicircle_sparse
+from vae_config import (
+    args_gridworld, args_point_robot_sparse, args_cheetah_vel, args_ant_semicircle_sparse,
+    args_hopper_param,
+    args_humanoid_dir,
+    args_walker_param,
+)
+
 
 
 BAR_LENGTH = 32     # for nicely printing training progress
@@ -314,6 +320,12 @@ def _train_vae(
         args = args_ant_semicircle_sparse.get_args(rest_args)
         parser.add_argument('--env-name', default='AntSemiCircleSparse-v0')
         args.env_name = 'AntDir-v0'
+    elif env_type == 'walker':
+        args = args_walker_param.get_args(rest_args)
+    elif env_type == 'hopper':
+        args = args_hopper_param.get_args(rest_args)
+    elif env_type == 'humanoid':
+        args = args_humanoid_dir.get_args(rest_args)
     else:
         import ipdb; ipdb.set_trace()
 
@@ -322,11 +334,12 @@ def _train_vae(
     args, env = off_utl.expand_args(args)
     args.save_dir = os.path.join(log_dir, 'trained_vae')
 
-
     args.trajectory_len = path_length
+    task_data = joblib.load(saved_tasks_path)
+    tasks = task_data['tasks']
     dataset, goals = off_utl.load_pearl_buffer(
-        offline_buffer_path,
-        saved_tasks_path,
+        pretrain_buffer_path=offline_buffer_path,
+        tasks=tasks,
         add_done_info=env.add_done_info,
         path_length=path_length,
         meta_episode_len=meta_episode_len,
@@ -334,7 +347,6 @@ def _train_vae(
     )
     for data in dataset:
         print(data[0].shape)
-    import ipdb; ipdb.set_trace()
 
     dataset = [[x.astype(np.float32) for x in d] for d in dataset]
 
