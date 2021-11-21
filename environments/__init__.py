@@ -56,7 +56,7 @@ register(
 register(
     'HumanoidDir-v0',
     entry_point='environments.wrappers:mujoco_wrapper',
-    kwargs={'entry_point': 'environments.mujoco.rand_param_envs.humanoid_dir:HumanoidDirEnv'},
+    kwargs={'entry_point': 'environments.mujoco.rand_param_envs.humanoid_dir2:HumanoidDirEnv'},
     max_episode_steps=200
 )
 # # ----------- GridWorld ----------- # #

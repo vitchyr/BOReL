@@ -1,20 +1,23 @@
-raise NotImplementedError("Use humanoid_dir2 instead")
+from typing import List
+
 import numpy as np
 
-from environments.mujoco.rand_param_envs.base import MetaEnv
-from environments.mujoco.rand_param_envs.gym.envs.mujoco.humanoid import (
-    HumanoidEnv,
-    mass_center,
-)
+from gym.envs.mujoco import HumanoidEnv as HumanoidEnv
 
-class HumanoidDirEnv(HumanoidEnv, MetaEnv):
+def mass_center(model, sim):
+    mass = np.expand_dims(model.body_mass, 1)
+    xpos = sim.data.xipos
+    return (np.sum(mass * xpos, 0) / np.sum(mass))
+
+
+class HumanoidDirEnv_(HumanoidEnv):
 
     def __init__(self, tasks=None, n_tasks=2):
         if tasks is None:
             tasks = self.sample_tasks(n_tasks)
         self.tasks = tasks
         self.reset_task(0)
-        super(HumanoidDirEnv, self).__init__()
+        super(HumanoidDirEnv_, self).__init__()
 
     def step(self, action):
         pos_before = np.copy(mass_center(self.model, self.sim)[:2])
@@ -49,20 +52,52 @@ class HumanoidDirEnv(HumanoidEnv, MetaEnv):
     def get_all_task_idx(self):
         return range(len(self.tasks))
 
-    # not sure if I should implement this or set_task..
     def reset_task(self, idx):
         self._task = self.tasks[idx]
         self._goal = self._task['goal'] # assume parameterization of task by single vector
-
-    def set_task(self, task):
-        self._task = task #self.tasks[idx]
-        self._goal = self._task['goal'] # assume parameterization of task by single vector
-
-    def get_task(self):
-        return self._task
 
     def sample_tasks(self, num_tasks):
         # velocities = np.random.uniform(0., 1.0 * np.pi, size=(num_tasks,))
         directions = np.random.uniform(0., 2.0 * np.pi, size=(num_tasks,))
         tasks = [{'goal': d} for d in directions]
         return tasks
+
+
+class HumanoidDirEnv(HumanoidDirEnv_):
+    def __init__(self, tasks: List[dict] = None, task_idx: int = 0, single_task: bool = False, include_goal: bool = False):
+        self.include_goal = include_goal
+        super(HumanoidDirEnv, self).__init__()
+        if tasks is None:
+            tasks = self.sample_tasks(130) #Only backward-forward tasks
+        self.tasks = tasks
+        self._task = tasks[task_idx]
+        if single_task:
+            self.tasks = self.tasks[task_idx:task_idx+1]
+        self._goal = self._task['goal']
+        self._max_episode_steps = 200
+        self.info_dim = 1
+
+    def _get_obs(self):
+        if self.include_goal:
+            obs = super()._get_obs()
+            obs = np.concatenate([obs, np.array([np.cos(self._goal), np.sin(self._goal)])])
+        else:
+            obs = super()._get_obs()
+        return obs
+
+    def step(self, action):
+        obs, rew, done, info = super().step(action)
+        if done == True:
+            rew = rew - 5.0
+            done = False
+        return (obs, rew, done, info)
+
+    def set_task(self, task):
+        self._task = task
+        self._goal = task['goal']
+        self.reset()
+
+    def set_task_idx(self, idx):
+        self._task = self.tasks[idx]
+        self._goal = self._task['goal']
+        self.reset()
