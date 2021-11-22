@@ -280,6 +280,18 @@ def train(vae, dataset, args):
             if vae.state_decoder is not None:
                 torch.save(vae.state_decoder.state_dict(),
                            os.path.join(save_path, "state_decoder{0}.pt".format(iter_ + 1)))
+    # iter_ = -1
+    # save_path = os.path.join(os.getcwd(), args.full_save_path, 'models')
+    # if not os.path.exists(save_path):
+    #     os.mkdir(save_path)
+    # torch.save(vae.encoder.state_dict(),
+    #            os.path.join(save_path, "encoder{0}.pt".format(iter_ + 1)))
+    # if vae.reward_decoder is not None:
+    #     torch.save(vae.reward_decoder.state_dict(),
+    #                os.path.join(save_path, "reward_decoder{0}.pt".format(iter_ + 1)))
+    # if vae.state_decoder is not None:
+    #     torch.save(vae.state_decoder.state_dict(),
+    #                os.path.join(save_path, "state_decoder{0}.pt".format(iter_ + 1)))
 
 
 def _train_vae(

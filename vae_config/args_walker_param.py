@@ -13,6 +13,7 @@ def get_args(rest_args):
     # parser.add_argument('--hindsight-relabelling', type=int, default=False)
 
     parser.add_argument('--num-iters', type=int, default=100)
+    # parser.add_argument('--num-iters', type=int, default=0)
     parser.add_argument('--tasks-batch-size', type=int, default=4)
     parser.add_argument('--vae-batch-num-rollouts-per-task', type=int, default=8)
     parser.add_argument('--vae-lr', type=float, default=0.0003, help='learning rate for VAE (default: 3e-4)')

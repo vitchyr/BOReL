@@ -19,7 +19,6 @@ def main(debug, suffix, nseeds, mode):
 
     if debug:
         exp_name = 'dev--' + exp_name
-        mode = 'here_no_doodad'
         nseeds = 1
 
     params = {
@@ -29,18 +28,20 @@ def main(debug, suffix, nseeds, mode):
     if mode == 'azure':
         remote_mount_configs = [
             dict(
-                local_dir='/doodad_tmp/',
+                local_dir='/doodad_tmp/21-11-14_smac-iclr22-walker--walker-data-gen--v4/23h-02m-26s_run0/',
                 mount_point='/preloaded_data',
             ),
         ]
-        exp_base_path = '/preloaded_data/'
+        exp_dir_path = '/preloaded_data/'
+        use_gpu = True
     elif mode == 'here_no_doodad':
+        exp_name = 'dev--' + exp_name
         remote_mount_configs = []
-        exp_base_path = '/Users/vitchyr/data/doodad/'
+        exp_dir_path = '/Users/vitchyr/data/doodad/21-11-14_smac-iclr22-walker--walker-data-gen--v4/23h-02m-26s_run0/'
+        use_gpu = False
     else:
         raise ValueError(mode)
 
-    exp_dir_path = exp_base_path + '21-11-14_smac-iclr22-walker--walker-data-gen--v4/23h-02m-26s_run0/'
     default_params = {
         'offline_buffer_path': exp_dir_path + 'extra_snapshot_itr40.cpkl',
         'saved_tasks_path': exp_dir_path + 'tasks_description.joblib',
@@ -62,18 +63,16 @@ def main(debug, suffix, nseeds, mode):
         mode=mode,
         docker_image='vitchyr/borel-v2',
         code_dirs_to_mount=[
-            '/Users/vitchyr/git/BOReL/',
-            '/Users/vitchyr/git/doodad/',
-            '/Users/vitchyr/git/railrl-private/',
-            '/Users/vitchyr/git/multiworld/',
+            '/Users/vitchyr/code/BOReL/',
+            '/Users/vitchyr/code/doodad/',
+            '/Users/vitchyr/code/railrl-private/',
+            '/Users/vitchyr/code/multiworld/',
+            '/Users/vitchyr/code/rand_param_envs',
         ],
-        non_code_dirs_to_mount=[
-            dict(
-                local_dir='/home/vitchyr/.mujoco/',
-                mount_point='/root/.mujoco',
-            ),
-        ],
-        use_gpu=True,
+        use_gpu=use_gpu,
+        azure_mode_kwargs=dict(
+            num_vcpu=16,
+        ),
         remote_mount_configs=remote_mount_configs,
     )
     print(exp_name)
