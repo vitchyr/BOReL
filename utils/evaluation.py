@@ -9,7 +9,6 @@ import gym
 import numpy as np
 from utils import helpers as utl
 from torchkit import pytorch_utils as ptu
-from sklearn.manifold import TSNE
 import seaborn as sns
 import pandas as pd
 import pylab as pl
@@ -469,6 +468,7 @@ def sample_random_normal(dim, n_samples):
 
 
 def visualize_latent_space(latent_dim, n_samples, decoder):
+    from sklearn.manifold import TSNE
     latents = ptu.FloatTensor(sample_random_normal(latent_dim, n_samples))
 
     pred_rewards = ptu.get_numpy(decoder(latents, None))
