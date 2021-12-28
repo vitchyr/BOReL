@@ -72,7 +72,7 @@ def main(debug, suffix, nseeds, mode):
             '/Users/vitchyr/code/multiworld/',
             '/Users/vitchyr/code/rand_param_envs',
         ],
-        use_gpu=False,
+        use_gpu=True,
         # azure_mode_kwargs=dict(
         #     num_vcpu=16,
         #     terminate_on_end=True,

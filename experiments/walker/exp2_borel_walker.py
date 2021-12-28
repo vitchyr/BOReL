@@ -72,7 +72,7 @@ def main(debug, suffix, nseeds, mode):
         default_params=default_params,
         log_path=exp_name,
         mode=mode,
-        docker_image='vitchyr/borel-v2',
+        docker_image='vitchyr/borel-v5',
         code_dirs_to_mount=[
             '/Users/vitchyr/code/BOReL/',
             '/Users/vitchyr/code/doodad/',
