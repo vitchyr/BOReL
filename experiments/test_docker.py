@@ -1,8 +1,10 @@
 import click
 
 from doodad.wrappers.easy_launch import sweep_function
-from launcher.train_vae_offline import train_vae
 
+
+def foo(*args, **kwargs):
+    print("hello from test_docker")
 
 @click.command()
 @click.option('--debug', is_flag=True, default=False)
@@ -38,7 +40,7 @@ def main(debug, suffix, nseeds, mode):
     elif mode == 'here_no_doodad':
         exp_name = 'dev--' + exp_name
         remote_mount_configs = []
-        exp_dir_path = '/Users/vitchyr/data/doodad/21-11-14_smac-iclr22-hopper--hopper-data-gen--v4/23h-02m-27s_run0/'
+        exp_dir_path = '/Users/vitchyr/data/doodad/'
         use_gpu = False
     else:
         raise ValueError(mode)
@@ -57,7 +59,7 @@ def main(debug, suffix, nseeds, mode):
 
     print(exp_name)
     sweep_function(
-        train_vae,
+        foo,
         params,
         default_params=default_params,
         log_path=exp_name,
@@ -70,12 +72,11 @@ def main(debug, suffix, nseeds, mode):
             '/Users/vitchyr/code/multiworld/',
             '/Users/vitchyr/code/rand_param_envs',
         ],
-        use_gpu=use_gpu,
-        # num_gpu=2,
-        azure_mode_kwargs=dict(
-            num_vcpu=16,
-            terminate_on_end=False,
-        ),
+        use_gpu=False,
+        # azure_mode_kwargs=dict(
+        #     num_vcpu=16,
+        #     terminate_on_end=True,
+        # ),
         remote_mount_configs=remote_mount_configs,
     )
     print(exp_name)

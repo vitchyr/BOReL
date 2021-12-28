@@ -80,7 +80,7 @@ RUN wget --quiet https://repo.anaconda.com/miniconda/Miniconda3-latest-Linux-x86
 RUN conda update -y --name base conda && conda clean --all -y
 
 
-RUN conda create --name railrl python=3.7.4 pip
+RUN conda create --name railrl python=3.6.13 pip
 RUN echo "source activate railrl" >> ~/.bashrc
 # Use the railrl pip
 ENV OLDPATH $PATH
@@ -99,8 +99,10 @@ RUN pip install requests==2.23.0
 RUN pip install seaborn==0.10.0
 RUN pip install tensorboardX==1.8
 RUN pip install gitpython==2.1.7
-RUN pip install mujoco-py==2.0.2.10
+RUN pip install mujoco-py==2.0.2.13
 RUN pip install cloudpickle==0.5.2
+RUN pip install gtimer==1.0.0b5
+RUN pip install pygame==1.9.6
 # RUN pip install pyglet==1.3.2
 # RUN pip install gym==0.15.4
 
