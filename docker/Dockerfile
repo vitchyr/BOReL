@@ -103,6 +103,7 @@ RUN pip install mujoco-py==2.0.2.13
 RUN pip install cloudpickle==0.5.2
 RUN pip install gtimer==1.0.0b5
 RUN pip install pygame==1.9.6
+RUN pip install PyOpenGL==3.1.5
 # RUN pip install pyglet==1.3.2
 # RUN pip install gym==0.15.4
 
