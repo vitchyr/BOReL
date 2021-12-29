@@ -4,8 +4,22 @@ import os
 from tensorboardX import SummaryWriter
 from torchkit import pytorch_utils as ptu
 import torch
+import numpy as np
 
 from utils.logging import logger, setup_logger
+
+
+class MyEncoder(json.JSONEncoder):
+    def default(self, o):
+        if isinstance(o, type):
+            return {'$class': o.__module__ + "." + o.__name__}
+        if isinstance(o, np.ndarray):
+            return o.tolist()
+        elif callable(o):
+            return {
+                '$function': o.__module__ + "." + o.__name__
+            }
+        return json.JSONEncoder.default(self, o)
 
 
 class TBLogger:
@@ -76,7 +90,8 @@ class TBLogger:
             except:
                 config = args
             config.update(device=ptu.device.type)
-            json.dump(config, f, indent=2)
+            # json.dump(config, f, indent=2)
+            json.dump(config, f, indent=2, sort_keys=True, cls=MyEncoder)
 
     def finish_iteration(self, iter):
         logger.dump_tabular()
