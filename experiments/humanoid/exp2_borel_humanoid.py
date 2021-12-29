@@ -19,10 +19,8 @@ def main(debug, suffix, nseeds, mode):
     )
 
     if debug:
-        exp_name = 'dev--' + exp_name
-        mode = 'local'
+        mode = 'here_no_doodad'
         nseeds = 1
-
 
     if mode == 'azure':
         remote_mount_configs = [
@@ -31,19 +29,21 @@ def main(debug, suffix, nseeds, mode):
                 mount_point='/preloaded_data',
             ),
             dict(
-                local_dir='/doodad_tmp/TODO',
+                local_dir='/doodad_tmp/21-12-28_borel-exp1_vae_humanoid/run0_16h-22m-50s/trained_vae',
                 mount_point='/preloaded_vae',
             ),
         ]
         exp_dir_path = '/preloaded_data/'
         pretrain_buffer_path = exp_dir_path + 'extra_snapshot_itr100.cpkl'
         use_gpu = True
+        pretrained_vae_dir = "/preloaded_vae"
     elif mode == 'here_no_doodad':
         exp_name = 'dev--' + exp_name
         remote_mount_configs = []
         exp_dir_path = '/Users/vitchyr/data/doodad/21-11-14_smac-iclr22-humanoid--humanoid-data-gen--v4/23h-02m-26s_run0/'
         use_gpu = False
         pretrain_buffer_path = exp_dir_path + 'extra_snapshot_itr20.cpkl'
+        pretrained_vae_dir = '/Users/vitchyr/data/doodad/21-12-28_borel-exp1_vae_humanoid/run0_16h-22m-50s/trained_vae'
     else:
         raise ValueError(mode)
 
@@ -54,8 +54,8 @@ def main(debug, suffix, nseeds, mode):
     default_params = {
         'offline_buffer_path': pretrain_buffer_path,
         'saved_tasks_path': exp_dir_path + 'tasks_description.joblib',
-        'vae_model_name': 'TODO',
-        'pretrained_vae_dir': "/preloaded_vae",
+        'vae_model_name': 'relabel__29_12_00_39_46',
+        'pretrained_vae_dir': pretrained_vae_dir,
         # 'relabelled_data_dir': '/preloaded_data/demos/half_cheetah_vel_130/pearl_buffer_iter50_relabelled_v2/',
         'transform_data_bamdp': True,
         'load_buffer_kwargs': {
@@ -65,7 +65,7 @@ def main(debug, suffix, nseeds, mode):
         'path_length': 200,
         'meta_episode_len': 600,
         'num-train-tasks': 100,
-        'gpu_id': 1,
+        # 'gpu_id': 1,
     }
     print(exp_name)
     sweep_function(
