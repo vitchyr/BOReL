@@ -1,6 +1,7 @@
 import os
 
-from environments.mujoco.rand_param_envs.gym import error, spaces
+from environments.mujoco.rand_param_envs.gym import error#, spaces
+from gym import spaces
 from environments.mujoco.rand_param_envs.gym.utils import seeding
 import numpy as np
 from os import path
