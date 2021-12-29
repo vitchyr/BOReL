@@ -305,6 +305,8 @@ def _train_vae(
         load_buffer_kwargs=None,
         **kwargs
 ):
+    with open(os.path.join(log_dir, 'test.txt'), 'w') as f:
+        f.write("hello from train_vae_offline.py")
     if load_buffer_kwargs is None:
         load_buffer_kwargs = {}
     random.seed(seed)
@@ -339,7 +341,7 @@ def _train_vae(
     elif env_type == 'humanoid':
         args = args_humanoid_dir.get_args(rest_args)
     else:
-        import ipdb; ipdb.set_trace()
+        raise ValueError('Unknown env_type: {}'.format(env_type))
 
     set_gpu_mode(torch.cuda.is_available() and args.use_gpu)
 
@@ -349,6 +351,9 @@ def _train_vae(
     args.trajectory_len = path_length
     task_data = joblib.load(saved_tasks_path)
     tasks = task_data['tasks']
+    print("loading dataset")
+    with open(os.path.join(log_dir, 'tmp1.txt'), 'w') as f:
+        f.write("train_vae_offline.py: start loading dataset")
     dataset, goals = off_utl.load_pearl_buffer(
         pretrain_buffer_path=offline_buffer_path,
         tasks=tasks,
@@ -357,6 +362,9 @@ def _train_vae(
         meta_episode_len=meta_episode_len,
         **load_buffer_kwargs
     )
+    with open(os.path.join(log_dir, 'tmp1.txt'), 'a') as f:
+        f.write("train_vae_offline.py: done loading dataset")
+    print("done loading dataset")
     for data in dataset:
         print(data[0].shape)
 
