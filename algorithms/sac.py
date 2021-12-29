@@ -112,6 +112,13 @@ class SAC(nn.Module):
 
         policy_loss = ((self.alpha_entropy * log_prob) - min_q_new_actions).mean()
 
+        # update policy network
+        self.policy_optim.zero_grad()
+        policy_loss.backward()
+        if self.clip_grad_value is not None:
+            self._clip_grads(self.policy)
+        self.policy_optim.step()
+
         # update q networks
         self.qf1_optim.zero_grad()
         self.qf2_optim.zero_grad()
@@ -124,13 +131,6 @@ class SAC(nn.Module):
         self.qf2_optim.step()
         # soft update
         self.soft_target_update()
-
-        # update policy network
-        self.policy_optim.zero_grad()
-        policy_loss.backward()
-        if self.clip_grad_value is not None:
-            self._clip_grads(self.policy)
-        self.policy_optim.step()
 
         if self.automatic_entropy_tuning:
             alpha_entropy_loss = -(self.log_alpha_entropy * (log_prob + self.target_entropy).detach()).mean()
