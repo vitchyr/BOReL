@@ -13,13 +13,19 @@ from utils import offline_utils as off_utl
 from offline_config import (
     args_ant_semicircle_sparse,
     args_cheetah_vel, args_point_robot_sparse, args_gridworld,
-    args_ant_dir
+    args_ant_dir,
+    args_hopper_param,
+    args_humanoid_dir,
+    args_walker_param,
 )
 from utils.logging import setup_logger, logger
 
 env_name_to_args = {
     'ant_dir': args_ant_dir,
     'cheetah_vel': args_cheetah_vel,
+    'hopper': args_hopper_param,
+    'humanoid': args_humanoid_dir,
+    'walker': args_walker_param,
 }
 
 from doodad.wrappers.easy_launch import save_doodad_config, DoodadConfig
@@ -50,6 +56,7 @@ def _borel(
     torch.manual_seed(seed)
     torch.cuda.manual_seed(seed)
     parser = argparse.ArgumentParser()
+    torch.autograd.set_detect_anomaly(True)
 
     if offline_buffer_path_to_save_to is None:
         offline_buffer_path_to_save_to = os.path.join(log_dir, 'transformed_data')
@@ -82,8 +89,8 @@ def _borel(
     env = make_env(args.env_name,
                    args.max_rollouts_per_task,
                    presampled_tasks=tasks,
-                   seed=args.seed,
-                   n_tasks=1)
+                   seed=args.seed)#,
+                   # n_tasks=1)
 
     args.vae_dir = pretrained_vae_dir
     args.data_dir = None

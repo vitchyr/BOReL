@@ -63,7 +63,8 @@ class OfflineMetaLearner:
                             args.max_rollouts_per_task,
                             presampled_tasks=args.presampled_tasks,
                             seed=args.seed,
-                            n_tasks=self.args.num_eval_tasks)
+                            )
+                            # n_tasks=self.args.num_eval_tasks)
         if self.args.env_name == 'GridNavi-v2':
             self.env.unwrapped.goals = [tuple(goal.astype(int)) for goal in self.goals]
 
