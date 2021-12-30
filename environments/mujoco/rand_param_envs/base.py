@@ -119,8 +119,12 @@ class RandomEnv(MetaEnv, MujocoEnv):
         return param_sets
 
     def set_task(self, task):
+        if isinstance(task, int):
+            task = self.tasks[task]
         for param, param_val in task.items():
             param_variable = getattr(self.model, param)
+            if param_variable.shape != param_val.shape:
+                param_val = param_val.reshape(param_variable.shape)
             assert param_variable.shape == param_val.shape, 'shapes of new parameter value and old one must match'
             setattr(self.model, param, param_val)
         self.curr_params = task
