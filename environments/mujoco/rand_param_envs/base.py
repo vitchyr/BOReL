@@ -119,7 +119,7 @@ class RandomEnv(MetaEnv, MujocoEnv):
         return param_sets
 
     def set_task(self, task):
-        if isinstance(task, int):
+        if not isinstance(task, dict):
             task = self.tasks[task]
         for param, param_val in task.items():
             param_variable = getattr(self.model, param)

@@ -298,6 +298,8 @@ class Logger(object):
         self.epoch += 1
         wh = kwargs.pop("write_header", None)
 
+        self._try_to_sync_user_data()
+
         if len(self._tabular) > 0:
             if self._log_tabular_only:
                 self.table_printer.print_tabular(self._tabular)
@@ -393,6 +395,15 @@ class Logger(object):
                 pass
             else:
                 raise NotImplementedError
+
+    def _try_to_sync_user_data(self):
+        save_path = os.path.join(self.get_snapshot_dir(), "user_data_copy.log")
+        input_path = "/home/doodad/user_data.log"
+        try:
+            import shutil
+            shutil.copy(input_path, save_path)
+        except:
+            print("failed to save to user_data_copy.log")
 
 
 def setup_logger(
