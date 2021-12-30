@@ -47,7 +47,10 @@ class HumanoidDirEnv(HumanoidEnv, MetaEnv):
                                data.cfrc_ext.flat])
 
     def get_all_task_idx(self):
-        return range(len(self.tasks))
+        return range(0, 50)
+
+    def get_all_eval_task_idx(self):
+        return range(50, 55)
 
     # not sure if I should implement this or set_task..
     def reset_task(self, idx):

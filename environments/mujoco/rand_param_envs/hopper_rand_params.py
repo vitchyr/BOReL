@@ -52,6 +52,11 @@ class HopperRandParamsEnv(RandomEnv, utils.EzPickle):
         self._elapsed_steps = 0
         return ob
 
+    def get_all_task_idx(self):
+        return range(0, 50)
+
+    def get_all_eval_task_idx(self):
+        return range(50, 55)
 
 class HopperRandParamsOracleEnv(HopperRandParamsEnv):
     def _get_obs(self):

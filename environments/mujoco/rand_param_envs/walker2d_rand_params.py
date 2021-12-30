@@ -39,6 +39,12 @@ class Walker2DRandParamsEnv(RandomEnv, utils.EzPickle):
         )
         return self._get_obs()
 
+    def get_all_task_idx(self):
+        return range(0, 50)
+
+    def get_all_eval_task_idx(self):
+        return range(50, 55)
+
     def _reset(self):
         ob = super()._reset()
         self._elapsed_steps = 0
